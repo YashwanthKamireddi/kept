@@ -1,21 +1,52 @@
-"""LiveKit Agents worker entrypoint (skeleton).
+"""LiveKit Agents worker: the live interviewer.
 
-Wiring plan (Day 1-4 gate: Telugu echo over a real SIP call):
-  SIP trunk -> LiveKit room -> this worker
-  audio -> Sarvam STT -> interviewer.stream_turn (Claude) -> Sarvam TTS -> room
+Pipeline per call:
+  SIP -> LiveKit room -> AgentSession(Sarvam STT -> KathaAgent -> Sarvam TTS)
+with Silero VAD + semantic turn detection (barge-in handled by AgentSession).
 
-This file intentionally fails fast when credentials are missing instead of
-pretending: the first milestone is a REAL call, not a demo.
+KathaAgent overrides `llm_node` — the documented extension point — so the
+brain is our own `stream_turn` (Opus 4.8 with cached Life Brief prefix),
+not a generic LLM adapter. Transcripts checkpoint to the DB as turns finalize
+(user turns via the session's conversation events, biographer turns as they
+are spoken), so a dropped line never loses a word.
+
+THE WIRING POINT (single place that needs real credentials to go live):
+  1. Fill .env — LIVEKIT_URL/KEY/SECRET, SARVAM_API_KEY, ANTHROPIC_API_KEY.
+  2. Point a SIP trunk at LiveKit (dispatch rule -> agent name "katha").
+  3. Run: uv run --package katha-voice python -m katha_voice.worker dev
+The job's room metadata must carry {"session_id": "..."} (set by the caller
+that creates the outbound SIP participant).
 """
 
+import json
 import sys
+import time
 
+from anthropic import AsyncAnthropic
 from katha_core.config import settings
+from katha_core.db import create_all
+from katha_core.models import Speaker
+from livekit import agents
+from livekit.agents import Agent, AgentSession, JobContext, WorkerOptions
+from livekit.plugins import sarvam, silero
+
+from .calls import (
+    CallStateError,
+    TranscriptRecorder,
+    begin_call,
+    build_dialogue_context,
+    complete_call,
+    drop_call,
+    storyteller_for_session,
+)
+from .interviewer import stream_turn
+
+AGENT_NAME = "katha"
 
 
 def preflight() -> list[str]:
     s = settings()
-    missing = [
+    return [
         name
         for name, value in {
             "LIVEKIT_URL": s.livekit_url,
@@ -26,7 +57,107 @@ def preflight() -> list[str]:
         }.items()
         if not value
     ]
-    return missing
+
+
+class KathaAgent(Agent):
+    def __init__(self, *, storyteller, session_plan: str, seed_dialogue: list[dict]):
+        # Craft prompt + Life Brief live in our own system blocks (interviewer.py);
+        # instructions here are minimal because llm_node bypasses them.
+        super().__init__(instructions="You are Katha, a warm voice biographer.")
+        self._storyteller = storyteller
+        self._session_plan = session_plan
+        self._seed = seed_dialogue
+        self._client = AsyncAnthropic(api_key=settings().anthropic_api_key)
+
+    async def llm_node(self, chat_ctx, tools, model_settings):
+        dialogue = list(self._seed)
+        for item in chat_ctx.items:
+            if getattr(item, "type", "message") != "message":
+                continue
+            text = (item.text_content or "").strip()
+            if not text or item.role == "system":
+                continue
+            role = "assistant" if item.role == "assistant" else "user"
+            dialogue.append({"role": role, "content": text})
+        if not dialogue or dialogue[-1]["role"] != "user":
+            dialogue.append({"role": "user", "content": "(silence — she is waiting)"})
+
+        async for delta in stream_turn(
+            self._client, self._storyteller, self._session_plan, dialogue
+        ):
+            yield delta
+
+
+def _plan_text(planned_themes: list) -> str:
+    return "\n".join(str(t) for t in planned_themes) or "First conversation — introduce, ask consent, start with childhood."
+
+
+async def entrypoint(ctx: JobContext) -> None:
+    await create_all()
+    meta = json.loads(ctx.room.metadata or "{}")
+    session_id = meta.get("session_id")
+    if not session_id:
+        raise RuntimeError("room metadata missing session_id")
+
+    call = await begin_call(session_id)
+    storyteller = await storyteller_for_session(session_id)
+    seed = await build_dialogue_context(session_id)
+    recorder = TranscriptRecorder(session_id, storyteller.language)
+    t0 = time.monotonic()
+
+    def now_ms() -> int:
+        return int((time.monotonic() - t0) * 1000)
+
+    session = AgentSession(
+        stt=sarvam.STT(
+            language=storyteller.language,
+            api_key=settings().sarvam_api_key,
+        ),
+        tts=sarvam.TTS(
+            target_language_code=storyteller.language,
+            model="bulbul:v3",
+            speaker=storyteller.tts_voice or None,
+            api_key=settings().sarvam_api_key,
+        ),
+        vad=silero.VAD.load(),
+    )
+
+    @session.on("conversation_item_added")
+    def _on_item(ev) -> None:
+        item = ev.item
+        text = (getattr(item, "text_content", None) or "").strip()
+        if not text:
+            return
+        speaker = Speaker.BIOGRAPHER if item.role == "assistant" else Speaker.STORYTELLER
+        # Fired synchronously; persist without blocking the audio loop.
+        import asyncio  # noqa: PLC0415
+
+        asyncio.create_task(recorder.record(speaker, text, now_ms(), now_ms()))
+
+    agent = KathaAgent(
+        storyteller=storyteller,
+        session_plan=_plan_text(call.planned_themes),
+        seed_dialogue=seed,
+    )
+
+    async def on_shutdown() -> None:
+        # Clean hangup -> COMPLETED. If the error path already marked the call
+        # DROPPED, complete_call refuses (CallStateError) and we leave it be —
+        # the scheduler resumes dropped calls.
+        try:
+            await complete_call(session_id)
+        except CallStateError:
+            pass
+
+    ctx.add_shutdown_callback(on_shutdown)
+
+    try:
+        await ctx.connect()
+        await session.start(agent, room=ctx.room)
+        await ctx.wait_for_participant()
+    except Exception:
+        await drop_call(session_id)
+        raise
 
 
 def main() -> None:
@@ -35,9 +166,7 @@ def main() -> None:
         print(f"katha-voice: missing credentials: {', '.join(missing)}", file=sys.stderr)
         print("Fill .env (see .env.example) before starting the voice worker.", file=sys.stderr)
         raise SystemExit(2)
-    # LiveKit AgentSession wiring lands here once credentials exist and the
-    # Sarvam plugin availability is verified against the installed version.
-    raise SystemExit("katha-voice: wiring not implemented yet (next milestone)")
+    agents.cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint, agent_name=AGENT_NAME))
 
 
 if __name__ == "__main__":
