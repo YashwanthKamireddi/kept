@@ -98,6 +98,10 @@ class Storyteller(Base):
     consented_at: Mapped[datetime | None] = mapped_column(default=None)
     # Context the Keeper provides at setup: relationships, birthplace, era hints.
     keeper_notes: Mapped[str] = mapped_column(Text, default="")
+    # Call cadence: next due call (set by the Keeper; advanced by the scheduler
+    # after each completed call). Null = not scheduled.
+    next_call_at: Mapped[datetime | None] = mapped_column(default=None)
+    cadence_days: Mapped[int] = mapped_column(Integer, default=7)
     # Compiled memory artifact — the interviewer's cached prompt prefix.
     life_brief: Mapped[str] = mapped_column(Text, default="")
     life_brief_version: Mapped[int] = mapped_column(Integer, default=0)

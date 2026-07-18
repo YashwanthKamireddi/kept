@@ -10,6 +10,7 @@ dependencies = [
     "anthropic>=0.116",
     "email-validator>=2.0",
     "boto3>=1.43.51",
+    "livekit-api>=1.2.0",
 ]
 
 [build-system]

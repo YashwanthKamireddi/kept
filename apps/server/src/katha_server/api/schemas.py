@@ -23,6 +23,8 @@ class StorytellerIn(BaseModel):
     language: str = "en"
     timezone: str = "UTC"
     keeper_notes: str = ""
+    next_call_at: datetime | None = None
+    cadence_days: int = Field(default=7, ge=1, le=30)
 
 
 class StorytellerOut(BaseModel):
@@ -34,6 +36,8 @@ class StorytellerOut(BaseModel):
     timezone: str
     consent: ConsentStatus
     life_brief_version: int
+    next_call_at: datetime | None
+    cadence_days: int
     created_at: datetime
 
     model_config = {"from_attributes": True}

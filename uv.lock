@@ -653,6 +653,7 @@ dependencies = [
     { name = "email-validator" },
     { name = "fastapi" },
     { name = "katha-core" },
+    { name = "livekit-api" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -663,6 +664,7 @@ requires-dist = [
     { name = "email-validator", specifier = ">=2.0" },
     { name = "fastapi", specifier = ">=0.115" },
     { name = "katha-core", editable = "packages/core" },
+    { name = "livekit-api", specifier = ">=1.2.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
 ]
 
