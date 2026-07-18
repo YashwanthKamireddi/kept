@@ -61,6 +61,17 @@ class Keeper(Base):
     family: Mapped[Family] = relationship(back_populates="keepers")
 
 
+class ApiToken(Base):
+    """Bearer token for a Keeper. v0 issues it directly at signup (dev stub);
+    the magic-link email flow will mint these later — same table, same shape."""
+
+    __tablename__ = "api_tokens"
+
+    token: Mapped[str] = mapped_column(String(64), primary_key=True, default=_id)
+    keeper_id: Mapped[str] = mapped_column(ForeignKey("keepers.id"))
+    created_at: Mapped[datetime] = mapped_column(default=_now)
+
+
 class ConsentStatus(enum.StrEnum):
     PENDING = "pending"      # storyteller created, intro call not yet done
     GRANTED = "granted"      # verbal consent captured on the intro call

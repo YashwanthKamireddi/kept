@@ -14,6 +14,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Katha", lifespan=lifespan)
 
+from .api.routes import router  # noqa: E402
+
+app.include_router(router)
+
 
 @app.get("/health")
 async def health() -> dict:
