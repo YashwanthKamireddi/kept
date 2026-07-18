@@ -34,3 +34,10 @@ async def create_all() -> None:
     # Dev convenience. Prod schema changes go through Alembic migrations.
     async with engine().begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+
+def reset() -> None:
+    """Drop cached engine/session factory (tests re-point DATABASE_URL)."""
+    global _engine, _session_factory
+    _engine = None
+    _session_factory = None
