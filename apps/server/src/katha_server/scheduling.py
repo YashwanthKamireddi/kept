@@ -24,7 +24,13 @@ from katha_core.models import (
 from sqlalchemy import func, select
 
 from .dispatch import Dispatcher
-from .pipeline.chapters import Judge, draft_chapter, llm_judge, to_chapter, verify_chapter
+from .pipeline.chapters import (
+    Judge,
+    draft_chapter,
+    llm_judge,
+    to_chapter,
+    write_verified_chapter,
+)
 from .pipeline.extraction import extract
 from .pipeline.planner import plan_session
 from .pipeline.runner import Extractor, process_session
@@ -114,8 +120,9 @@ async def finish_call(
         ) + 1
         theme = str(call.planned_themes[0]) if call.planned_themes else "This conversation"
 
-    draft = await asyncio.to_thread(writer, theme, list(segments))
-    report = await asyncio.to_thread(verify_chapter, draft, list(segments), judge)
+    draft, report = await asyncio.to_thread(
+        write_verified_chapter, theme, list(segments), writer, judge
+    )
     chapter = to_chapter(draft, report, storyteller.id, ordinal)
 
     async with db_session() as s:

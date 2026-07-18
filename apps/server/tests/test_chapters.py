@@ -67,6 +67,39 @@ def test_bridge_with_anchors_is_malformed():
     assert "bridge sentence carries anchors" in report.failures[0].reason
 
 
+def test_regeneration_uses_verifier_feedback():
+    from katha_server.pipeline.chapters import write_verified_chapter
+
+    calls: list[str] = []
+
+    def writer(theme, segments, feedback=""):
+        calls.append(feedback)
+        if not feedback:  # first attempt: an unanchored factual sentence
+            return _draft([SentenceDraft(text="I was born during the monsoon.")])
+        return _draft([
+            SentenceDraft(text="I grew up in Guntur.", segment_ids=["seg1"]),
+        ])
+
+    draft, report = write_verified_chapter(
+        "Childhood", _segments(), writer=writer, judge=_permissive_judge, max_attempts=2
+    )
+    assert report.passed
+    assert len(calls) == 2
+    assert "no anchors" in calls[1]  # the retry saw the verifier's reasons
+
+
+def test_regeneration_gives_up_after_max_attempts():
+    from katha_server.pipeline.chapters import write_verified_chapter
+
+    def writer(theme, segments, feedback=""):
+        return _draft([SentenceDraft(text="Always unanchored.")])
+
+    _, report = write_verified_chapter(
+        "Childhood", _segments(), writer=writer, judge=_permissive_judge, max_attempts=3
+    )
+    assert not report.passed  # caller keeps it DRAFT — family never sees it
+
+
 def test_judge_rejection_blocks_promotion():
     def strict_judge(sentence, texts, bridge):
         return "embellished" not in sentence

@@ -31,7 +31,8 @@ const theme = {
 };
 
 function Root() {
-  const { client } = useApp();
+  const { client, ready } = useApp();
+  if (!ready) return null; // restoring a persisted session
   if (!client) return <SignInScreen />;
   return (
     <Stack.Navigator

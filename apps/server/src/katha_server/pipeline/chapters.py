@@ -57,23 +57,28 @@ def _segments_block(segments: list[TranscriptSegment]) -> str:
     return "\n".join(f"[{s.id}] {s.speaker.value}: {s.text}" for s in segments)
 
 
-def draft_chapter(theme: str, segments: list[TranscriptSegment]) -> ChapterDraft:
-    """Blocking Claude call — run via asyncio.to_thread from async code."""
+def draft_chapter(
+    theme: str, segments: list[TranscriptSegment], feedback: str = ""
+) -> ChapterDraft:
+    """Blocking Claude call — run via asyncio.to_thread from async code.
+    `feedback` carries the verifier's per-sentence failures on a retry."""
+    content = (
+        f"Chapter theme: {theme}\n\n"
+        f"Transcript segments (id, speaker, text):\n{_segments_block(segments)}"
+    )
+    if feedback:
+        content += (
+            "\n\nYour previous draft FAILED fidelity verification. Rewrite the "
+            "chapter fixing exactly these problems (anchor every factual sentence "
+            f"to real segments; keep bridges fact-free):\n{feedback}"
+        )
     client = anthropic.Anthropic(api_key=settings().anthropic_api_key)
     response = client.messages.parse(
         model=settings().interviewer_model,
         max_tokens=16000,
         thinking={"type": "adaptive"},
         system=_WRITER_SYSTEM,
-        messages=[
-            {
-                "role": "user",
-                "content": (
-                    f"Chapter theme: {theme}\n\n"
-                    f"Transcript segments (id, speaker, text):\n{_segments_block(segments)}"
-                ),
-            }
-        ],
+        messages=[{"role": "user", "content": content}],
         output_format=ChapterDraft,
     )
     draft = response.parsed_output
@@ -178,6 +183,28 @@ def verify_chapter(
             )
 
     return VerificationReport(verdicts)
+
+
+def write_verified_chapter(
+    theme: str,
+    segments: list[TranscriptSegment],
+    writer=draft_chapter,
+    judge: Judge = llm_judge,
+    max_attempts: int = 2,
+) -> tuple[ChapterDraft, VerificationReport]:
+    """Draft → verify → on failure, re-draft with the verifier's feedback.
+    Returns the last (draft, report); the caller decides what a failed final
+    report means (it stays DRAFT and invisible to the family)."""
+    feedback = ""
+    draft = writer(theme, segments)
+    report = verify_chapter(draft, segments, judge)
+    for _ in range(max_attempts - 1):
+        if report.passed:
+            break
+        feedback = "\n".join(f"- {v.text!r}: {v.reason}" for v in report.failures)
+        draft = writer(theme, segments, feedback)
+        report = verify_chapter(draft, segments, judge)
+    return draft, report
 
 
 def to_chapter(

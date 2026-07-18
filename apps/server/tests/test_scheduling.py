@@ -107,7 +107,9 @@ def test_start_due_calls_plans_and_dispatches(fresh_db):
     asyncio.run(run())
 
 
-def _fake_writer(theme: str, segments: list[TranscriptSegment]) -> ChapterDraft:
+def _fake_writer(
+    theme: str, segments: list[TranscriptSegment], feedback: str = ""
+) -> ChapterDraft:
     st_segments = [s for s in segments if s.speaker == Speaker.STORYTELLER]
     return ChapterDraft(
         title=theme,
