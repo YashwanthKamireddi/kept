@@ -3,7 +3,7 @@ import { Animated, StyleSheet, Text, View } from "react-native";
 import { color, font, space } from "../theme";
 
 /**
- * The cassette bar: shown while her voice plays. A zari-gold thread shimmers
+ * The cassette bar: shown while the storyteller speaks. A gold thread shimmers
  * across the deck; the counter runs like a tape counter. Honest states only —
  * when a recording hasn't synced yet, it says so instead of pretending.
  */
@@ -59,12 +59,12 @@ const styles = StyleSheet.create({
     paddingTop: space(3),
     paddingBottom: space(7),
   },
-  thread: { height: 2, backgroundColor: color.zari, marginBottom: space(3) },
+  thread: { height: 2, backgroundColor: color.gold, marginBottom: space(3) },
   row: { flexDirection: "row", alignItems: "center", gap: space(3) },
   counter: {
     fontFamily: font.bodyBold,
     fontSize: 15,
-    color: color.zari,
+    color: color.gold,
     fontVariant: ["tabular-nums"],
   },
   label: { fontFamily: font.body, fontSize: 14, color: color.paper, flex: 1 },

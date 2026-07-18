@@ -20,8 +20,8 @@ class StorytellerIn(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     address_as: str = Field(min_length=1, max_length=120)
     phone_e164: str = Field(pattern=r"^\+\d{7,15}$")
-    language: str = "te-IN"
-    timezone: str = "Asia/Kolkata"
+    language: str = "en"
+    timezone: str = "UTC"
     keeper_notes: str = ""
 
 

@@ -41,7 +41,7 @@ export function SignInScreen() {
     >
       <Text style={styles.wordmark}>Katha</Text>
       <Text style={styles.thesis}>
-        Every family has a storyteller.{"\n"}Keep her voice.
+        Every family has a storyteller.{"\n"}Keep their voice.
       </Text>
 
       <View style={styles.form}>
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: color.ink,
   },
-  error: { ...type.caption, color: color.madder },
+  error: { ...type.caption, color: color.ember },
   button: {
     backgroundColor: color.ink,
     paddingVertical: space(4),

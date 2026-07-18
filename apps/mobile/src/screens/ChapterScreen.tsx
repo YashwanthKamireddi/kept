@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -6,7 +6,7 @@ import type { RootStackParamList } from "../navigation";
 import { color, space, type } from "../theme";
 import { useApp } from "../state";
 import type { Anchor, ChapterDetail } from "../api/client";
-import { ZariSentence } from "../components/ZariSentence";
+import { VoiceSentence } from "../components/VoiceSentence";
 import { TapeBar } from "../components/TapeBar";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Chapter">;
@@ -21,11 +21,21 @@ export function ChapterScreen({ route }: Props) {
   const [chapter, setChapter] = useState<ChapterDetail | null>(null);
   const [span, setSpan] = useState<PlayingSpan | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null);
 
-  const sourceUrl = useMemo(
-    () => (span && client ? client.audioUrl(span.anchor.audio_key) : null),
-    [span, client],
-  );
+  // Ask the server for a short-lived playback URL when a sentence is chosen.
+  useEffect(() => {
+    if (!span || !client) {
+      setSourceUrl(null);
+      return;
+    }
+    setUnavailable(false);
+    client
+      .resolveAudioUrl(span.anchor.audio_key)
+      .then(setSourceUrl)
+      .catch(() => setUnavailable(true));
+  }, [span, client]);
+
   const player = useAudioPlayer(sourceUrl ?? undefined);
   const status = useAudioPlayerStatus(player);
 
@@ -74,7 +84,7 @@ export function ChapterScreen({ route }: Props) {
             {paragraph.map((sentence, si) => {
               const key = `${pi}:${si}`;
               return (
-                <ZariSentence
+                <VoiceSentence
                   key={key}
                   sentence={sentence}
                   playing={span?.key === key && status.playing}
@@ -88,14 +98,14 @@ export function ChapterScreen({ route }: Props) {
           </Text>
         ))}
         <Text style={styles.colophon}>
-          Every underlined sentence is anchored to her recorded voice.
+          Every underlined sentence is anchored to the storyteller’s recorded voice.
         </Text>
       </ScrollView>
       {span && (
         <TapeBar
           playing={status.playing}
           positionMs={status.currentTime * 1000}
-          label={`Her voice — chapter ${chapter.ordinal}`}
+          label={`In their own voice — Chapter ${chapter.ordinal}`}
           unavailable={unavailable}
         />
       )}
@@ -115,7 +125,7 @@ const styles = StyleSheet.create({
   paragraph: { marginBottom: space(5) },
   colophon: {
     ...type.caption,
-    color: color.zari,
+    color: color.gold,
     marginTop: space(6),
   },
 });

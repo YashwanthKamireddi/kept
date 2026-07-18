@@ -24,7 +24,7 @@ const theme = {
     background: color.paper,
     card: color.paper,
     text: color.ink,
-    primary: color.zari,
+    primary: color.gold,
     border: color.hairline,
   },
 };
@@ -37,7 +37,7 @@ function Root() {
       screenOptions={{
         headerStyle: { backgroundColor: color.paper },
         headerTitleStyle: { fontFamily: font.displaySoft, color: color.ink },
-        headerTintColor: color.zari,
+        headerTintColor: color.gold,
         headerShadowVisible: false,
       }}
     >

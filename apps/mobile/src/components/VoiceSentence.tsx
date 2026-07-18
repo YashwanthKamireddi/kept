@@ -4,12 +4,12 @@ import { color, type } from "../theme";
 import type { Sentence } from "../api/client";
 
 /**
- * The signature element: a sentence carrying her actual voice wears a zari
- * thread — a fine gold underline. While she speaks it, the ink turns madder.
- * Bridges (pure narrative) wear nothing: the reader can SEE which words are
- * anchored to real audio. Fidelity, made visible.
+ * The signature element: a sentence carrying the storyteller's actual voice
+ * wears a fine gold thread — tap it and they speak it. While it plays, the
+ * ink turns ember. Bridges (pure narrative) wear nothing: the reader can SEE
+ * which words are anchored to real audio. Fidelity, made visible.
  */
-export function ZariSentence({
+export function VoiceSentence({
   sentence,
   playing,
   onPress,
@@ -22,17 +22,17 @@ export function ZariSentence({
   return (
     <Text
       accessibilityRole={anchored ? "button" : undefined}
-      accessibilityHint={anchored ? "Plays this sentence in her voice" : undefined}
+      accessibilityHint={anchored ? "Plays this sentence in the storyteller's voice" : undefined}
       onPress={anchored ? onPress : undefined}
       suppressHighlighting
       style={[
         type.prose,
         anchored && {
           textDecorationLine: "underline",
-          textDecorationColor: color.zari,
+          textDecorationColor: color.gold,
           textDecorationStyle: "solid",
         },
-        playing && { color: color.madder },
+        playing && { color: color.ember },
       ]}
     >
       {sentence.text}{" "}

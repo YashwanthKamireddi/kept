@@ -57,7 +57,7 @@ export function HomeScreen({ navigation }: Props) {
         <View style={styles.empty}>
           <Text style={type.sectionTitle}>The album is waiting</Text>
           <Text style={[type.body, { color: color.inkSoft, textAlign: "center" }]}>
-            Add a storyteller from the web console to schedule her first call.
+            Add a storyteller from the web console to schedule their first call.
           </Text>
         </View>
       }
@@ -90,7 +90,7 @@ function AlbumCard({
         <Text style={styles.albumName}>{storyteller.name}</Text>
         {visible.length === 0 ? (
           <Text style={type.caption}>
-            Her first chapter will appear here after her first call.
+            Their first chapter will appear here after their first call.
           </Text>
         ) : (
           visible.map((chapter) => (
@@ -115,12 +115,12 @@ function AlbumCard({
 function consentLine(storyteller: Storyteller): string {
   switch (storyteller.consent) {
     case "granted":
-      return "Recording with her blessing";
+      return "Recording with their blessing";
     case "pending":
-      return "Awaiting her first call";
+      return "Awaiting their first call";
     case "declined":
     case "revoked":
-      return "Paused at her request";
+      return "Paused at their request";
   }
 }
 
@@ -129,11 +129,11 @@ const styles = StyleSheet.create({
   empty: { alignItems: "center", gap: space(2), paddingTop: space(20) },
   card: {
     flexDirection: "row",
-    backgroundColor: color.inland,
+    backgroundColor: color.surface,
     borderRadius: 6,
     overflow: "hidden",
   },
-  spine: { width: 6, backgroundColor: color.zari },
+  spine: { width: 6, backgroundColor: color.gold },
   albumName: { fontFamily: font.display, fontSize: 26, color: color.ink },
   chapterRow: {
     flexDirection: "row",
@@ -143,5 +143,5 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: color.hairline,
   },
-  chapterOrdinal: { fontFamily: font.displaySoft, fontSize: 16, color: color.zari },
+  chapterOrdinal: { fontFamily: font.displaySoft, fontSize: 16, color: color.gold },
 });

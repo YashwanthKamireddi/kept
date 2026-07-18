@@ -1,18 +1,18 @@
 /**
- * Heirloom — Katha's design tokens.
+ * Heirloom — the design tokens.
  *
- * Grounded in the artifacts of a Telugu family archive: inland-letter paper,
- * fountain-pen ink, zari thread on a sari border. Gold belongs to her voice;
- * madder is reserved for the moment she is speaking. Spend boldness nowhere else.
+ * Grounded in the universal material of family archives: letter paper,
+ * fountain-pen ink, gold thread. Gold belongs to the storyteller's voice;
+ * ember marks the moment they are speaking. Spend boldness nowhere else.
  */
 
 export const color = {
   paper: "#F5F1E8", // aged letter paper — app background
-  inland: "#E4EAEE", // airmail-blue tint — cards & structural surfaces
+  surface: "#E4EAEE", // airmail-blue tint — cards & structural surfaces
   ink: "#232B3A", // fountain-pen blue-black — primary text
   inkSoft: "#5A6474", // faded ink — secondary text
-  zari: "#A87B23", // gold thread — voice underlines, accents
-  madder: "#8C3B2E", // sari-border red — the playing voice, nothing else
+  gold: "#A87B23", // gold thread — voice underlines, accents
+  ember: "#8C3B2E", // the playing voice, nothing else
   hairline: "#D8D2C4", // album-page rule lines
 } as const;
 

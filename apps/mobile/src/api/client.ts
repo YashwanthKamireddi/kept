@@ -112,7 +112,11 @@ export class KathaClient {
   getChapter = (chapterId: string) =>
     this.request<ChapterDetail>("GET", `/chapters/${chapterId}`);
 
-  /** Audio objects will be served/redirected by the server (R2). */
-  audioUrl = (audioKey: string) =>
-    audioKey ? `${this.baseUrl}/audio/${encodeURIComponent(audioKey)}` : null;
+  /** Short-lived playback URL for a recording (server presigns from R2). */
+  resolveAudioUrl = async (audioKey: string): Promise<string | null> => {
+    if (!audioKey) return null;
+    const path = audioKey.split("/").map(encodeURIComponent).join("/");
+    const out = await this.request<{ url: string }>("GET", `/audio/${path}`);
+    return out.url;
+  };
 }

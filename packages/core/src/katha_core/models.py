@@ -85,11 +85,12 @@ class Storyteller(Base):
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
     family_id: Mapped[str] = mapped_column(ForeignKey("families.id"))
     name: Mapped[str] = mapped_column(String(120))
-    # How the biographer addresses them, e.g. "Rajamma garu", "Dadi".
+    # How the biographer addresses them, e.g. "Grandma Rose", "Nonna", "Dadi".
     address_as: Mapped[str] = mapped_column(String(120))
     phone_e164: Mapped[str] = mapped_column(String(20))
-    language: Mapped[str] = mapped_column(String(16), default="te-IN")
-    timezone: Mapped[str] = mapped_column(String(64), default="Asia/Kolkata")
+    # BCP 47 tag chosen by the Keeper at setup — any language, no assumed home.
+    language: Mapped[str] = mapped_column(String(16), default="en")
+    timezone: Mapped[str] = mapped_column(String(64), default="UTC")
     tts_voice: Mapped[str] = mapped_column(String(64), default="")
     consent: Mapped[ConsentStatus] = mapped_column(
         Enum(ConsentStatus), default=ConsentStatus.PENDING

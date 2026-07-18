@@ -1,12 +1,11 @@
-"""STT/TTS provider seam.
+"""STT/TTS provider routing.
 
-Target providers (per architecture): Sarvam Saaras (STT, 22 Indic languages,
-code-mixing) and Sarvam Bulbul v3 (TTS, Telugu voices, streaming).
-
-Integration order of preference:
-1. LiveKit Agents plugin for Sarvam, if the installed livekit-agents version
-   ships one (verify at wiring time — do not assume).
-2. Direct Sarvam WebSocket streaming APIs behind these interfaces.
+The product is language-universal; providers are per-language market choices.
+Routing policy (config, not identity):
+- Indic languages (launch wedge): Sarvam — saarika STT with code-mixing,
+  bulbul TTS — via the official LiveKit plugins (wired in worker.py).
+- Other languages: pluggable per deployment (e.g. ElevenLabs/Deepgram LiveKit
+  plugins) behind the same seam; add routes as markets open.
 
 Nothing here fakes audio: until keys are configured and the wiring is verified
 against a real call, the worker refuses to start rather than simulating.

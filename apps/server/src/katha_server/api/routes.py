@@ -223,6 +223,23 @@ async def get_chapter(chapter_id: str, db: Db, keeper: CurrentKeeper) -> schemas
     )
 
 
+# --- Audio --------------------------------------------------------------------
+
+
+@router.get("/audio/{audio_key:path}", tags=["audio"])
+async def resolve_audio(audio_key: str, db: Db, keeper: CurrentKeeper) -> dict:
+    """Short-lived playback URL for a call recording the keeper's family owns."""
+    from .. import storage  # noqa: PLC0415
+
+    call = await db.scalar(select(CallSession).where(CallSession.audio_key == audio_key))
+    if call is None:
+        raise HTTPException(status_code=404, detail="recording not found")
+    await _owned_storyteller(db, keeper, call.storyteller_id)
+    if not storage.configured():
+        raise HTTPException(status_code=503, detail="audio storage not configured")
+    return {"url": storage.presigned_audio_url(audio_key), "expires_in": 600}
+
+
 # --- Follow-ups ---------------------------------------------------------------
 
 
