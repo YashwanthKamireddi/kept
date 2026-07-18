@@ -38,6 +38,19 @@ async def signup(body: schemas.SignupIn, db: Db) -> schemas.SignupOut:
     return schemas.SignupOut(token=token.token, keeper_id=keeper.id, family_id=family.id)
 
 
+@router.post("/auth/login", response_model=schemas.SignupOut, tags=["auth"])
+async def login(body: schemas.LoginIn, db: Db) -> schemas.SignupOut:
+    """Dev stub: token by email, no verification. The magic-link flow will add
+    the email round-trip and mint the same ApiToken rows."""
+    keeper = await db.scalar(select(Keeper).where(Keeper.email == body.email))
+    if keeper is None:
+        raise HTTPException(status_code=404, detail="no account with this email")
+    token = ApiToken(keeper_id=keeper.id)
+    db.add(token)
+    await db.commit()
+    return schemas.SignupOut(token=token.token, keeper_id=keeper.id, family_id=keeper.family_id)
+
+
 # --- Storytellers -------------------------------------------------------------
 
 _CONSENT_TRANSITIONS: dict[ConsentStatus, set[ConsentStatus]] = {

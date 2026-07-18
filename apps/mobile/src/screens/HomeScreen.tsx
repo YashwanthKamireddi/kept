@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useLayoutEffect, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
 import { color, font, space, type } from "../theme";
@@ -42,9 +43,24 @@ export function HomeScreen({ navigation }: Props) {
     }
   }, [client]);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+    }, [load]),
+  );
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => navigation.navigate("AddStoryteller")}
+        >
+          <Text style={styles.addButton}>Add</Text>
+        </Pressable>
+      ),
+    });
+  }, [navigation]);
 
   return (
     <FlatList
@@ -57,7 +73,7 @@ export function HomeScreen({ navigation }: Props) {
         <View style={styles.empty}>
           <Text style={type.sectionTitle}>The album is waiting</Text>
           <Text style={[type.body, { color: color.inkSoft, textAlign: "center" }]}>
-            Add a storyteller from the web console to schedule their first call.
+            Add your family's storyteller and we'll schedule their first call.
           </Text>
         </View>
       }
@@ -144,4 +160,5 @@ const styles = StyleSheet.create({
     borderTopColor: color.hairline,
   },
   chapterOrdinal: { fontFamily: font.displaySoft, fontSize: 16, color: color.gold },
+  addButton: { fontFamily: font.bodyBold, fontSize: 16, color: color.gold },
 });

@@ -43,12 +43,21 @@ SEGMENTS = [
 CHAPTER_TITLE = "The Street That Smelled of Bread"
 
 
-async def seed(email: str) -> None:
+async def seed(email: str, create: bool = False) -> None:
     await create_all()
     async with db_session() as s:
         keeper = await s.scalar(select(Keeper).where(Keeper.email == email))
+        if keeper is None and create:
+            from katha_core.models import Family  # noqa: PLC0415
+
+            family = Family(name="Demo Family")
+            s.add(family)
+            await s.flush()
+            keeper = Keeper(family_id=family.id, email=email, name="Demo Keeper")
+            s.add(keeper)
+            await s.flush()
         if keeper is None:
-            raise SystemExit(f"no keeper with email {email} — sign up first")
+            raise SystemExit(f"no keeper with email {email} — sign up first, or pass --create")
 
         st = Storyteller(
             family_id=keeper.family_id,
@@ -120,8 +129,10 @@ async def seed(email: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--email", required=True)
+    parser.add_argument("--create", action="store_true",
+                        help="create the account too, if it doesn't exist")
     args = parser.parse_args()
-    asyncio.run(seed(args.email))
+    asyncio.run(seed(args.email, create=args.create))
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
-import { KathaClient } from "./api/client";
+import { ApiError, KathaClient } from "./api/client";
 
 // Dev default; Android emulators reach the host machine via 10.0.2.2.
 const DEFAULT_BASE_URL = "http://localhost:8000";
@@ -19,7 +19,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       client,
       signIn: async (baseUrl, email, name, familyName) => {
         const c = new KathaClient(baseUrl || DEFAULT_BASE_URL);
-        await c.signup(email, name, familyName);
+        try {
+          await c.signup(email, name, familyName);
+        } catch (e) {
+          // Returning keeper: email already registered -> log in instead.
+          if (e instanceof ApiError && e.status === 409) await c.login(email);
+          else throw e;
+        }
         setClient(c);
       },
     }),

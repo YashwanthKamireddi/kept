@@ -94,6 +94,12 @@ export class KathaClient {
     return out.token;
   }
 
+  async login(email: string): Promise<string> {
+    const out = await this.request<{ token: string }>("POST", "/auth/login", { email });
+    this.token = out.token;
+    return out.token;
+  }
+
   listStorytellers = () => this.request<Storyteller[]>("GET", "/storytellers");
 
   createStoryteller = (input: {
@@ -101,6 +107,9 @@ export class KathaClient {
     address_as: string;
     phone_e164: string;
     language?: string;
+    timezone?: string;
+    next_call_at?: string; // ISO datetime of the first call
+    cadence_days?: number;
   }) => this.request<Storyteller>("POST", "/storytellers", input);
 
   listSessions = (storytellerId: string) =>

@@ -12,6 +12,7 @@ import { AppStateProvider, useApp } from "./src/state";
 import { SignInScreen } from "./src/screens/SignInScreen";
 import { HomeScreen } from "./src/screens/HomeScreen";
 import { ChapterScreen } from "./src/screens/ChapterScreen";
+import { AddStorytellerScreen } from "./src/screens/AddStorytellerScreen";
 import type { RootStackParamList } from "./src/navigation";
 import { color, font } from "./src/theme";
 
@@ -43,6 +44,11 @@ function Root() {
     >
       <Stack.Screen name="Home" component={HomeScreen} options={{ title: "The Album" }} />
       <Stack.Screen name="Chapter" component={ChapterScreen} options={{ title: "" }} />
+      <Stack.Screen
+        name="AddStoryteller"
+        component={AddStorytellerScreen}
+        options={{ title: "New storyteller" }}
+      />
     </Stack.Navigator>
   );
 }

@@ -16,6 +16,10 @@ class SignupOut(BaseModel):
     family_id: str
 
 
+class LoginIn(BaseModel):
+    email: EmailStr
+
+
 class StorytellerIn(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     address_as: str = Field(min_length=1, max_length=120)
