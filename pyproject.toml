@@ -5,10 +5,11 @@ description = "Katha — a biographer for every family, in the family's own lang
 requires-python = ">=3.12,<3.13"
 
 [tool.uv.workspace]
-members = ["packages/core", "apps/server", "apps/voice"]
+members = ["packages/core", "apps/server", "apps/voice", "evals"]
 
 [tool.uv.sources]
 katha-core = { workspace = true }
+katha-voice = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -21,4 +22,4 @@ line-length = 100
 target-version = "py312"
 
 [tool.pytest.ini_options]
-testpaths = ["packages", "apps"]
+testpaths = ["packages", "apps", "evals"]

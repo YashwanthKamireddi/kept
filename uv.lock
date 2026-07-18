@@ -5,6 +5,7 @@ requires-python = "==3.12.*"
 [manifest]
 members = [
     "katha-core",
+    "katha-evals",
     "katha-server",
     "katha-voice",
     "katha-workspace",
@@ -490,6 +491,23 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.9" },
     { name = "pydantic-settings", specifier = ">=2.5" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
+]
+
+[[package]]
+name = "katha-evals"
+version = "0.0.1"
+source = { editable = "evals" }
+dependencies = [
+    { name = "anthropic" },
+    { name = "katha-core" },
+    { name = "katha-voice" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "anthropic", specifier = ">=0.116" },
+    { name = "katha-core", editable = "packages/core" },
+    { name = "katha-voice", editable = "apps/voice" },
 ]
 
 [[package]]
