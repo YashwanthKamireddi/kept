@@ -2,15 +2,22 @@ import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { color, font, space, type } from "../theme";
+import { LinearGradient } from "expo-linear-gradient";
+import { color, font, radius, shadow, space, type } from "../theme";
+import { Entrance, PressableScale } from "../components/motion";
 import { DEFAULT_BASE_URL, useApp } from "../state";
 
+/**
+ * The cover scene. Arriving should feel like opening a leather album in
+ * lamplight: a dark stage, a gold-foil wordmark, then a sheet of warm paper
+ * rising to meet you. The form lives ON the paper — never floating in void.
+ */
 export function SignInScreen() {
   const { signIn } = useApp();
   const [email, setEmail] = useState("");
@@ -35,35 +42,52 @@ export function SignInScreen() {
   const ready = email.includes("@") && name.length > 0 && familyName.length > 0;
 
   return (
-    <KeyboardAvoidingView
-      style={styles.page}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <Text style={styles.wordmark}>Katha</Text>
-      <Text style={styles.thesis}>
-        Every family has a storyteller.{"\n"}Keep their voice.
-      </Text>
-
-      <View style={styles.form}>
-        <Field label="Your name" value={name} onChange={setName} />
-        <Field label="Email" value={email} onChange={setEmail} keyboard="email-address" />
-        <Field label="Family name" value={familyName} onChange={setFamilyName} />
-        <Field label="Server (dev)" value={baseUrl} onChange={setBaseUrl} keyboard="url" />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Pressable
-          accessibilityRole="button"
-          onPress={submit}
-          disabled={!ready || busy}
-          style={({ pressed }) => [
-            styles.button,
-            (!ready || busy) && { opacity: 0.4 },
-            pressed && { opacity: 0.8 },
-          ]}
+    <LinearGradient colors={["#1B212C", color.stage]} style={styles.stage}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.buttonText}>{busy ? "Opening the album…" : "Begin"}</Text>
-        </Pressable>
-      </View>
-    </KeyboardAvoidingView>
+          <Entrance order={0}>
+            <Text style={type.wordmark}>Katha</Text>
+          </Entrance>
+          <Entrance order={1}>
+            <Text style={styles.thesis}>
+              Every family has a storyteller.{"\n"}Keep their voice.
+            </Text>
+          </Entrance>
+
+          <Entrance order={3} style={styles.sheetWrap}>
+            <View style={styles.sheet}>
+              <Field label="Your name" value={name} onChange={setName} />
+              <Field label="Email" value={email} onChange={setEmail} keyboard="email-address" />
+              <Field label="Family name" value={familyName} onChange={setFamilyName} />
+              <Field label="Server (dev)" value={baseUrl} onChange={setBaseUrl} keyboard="url" />
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+              <PressableScale
+                accessibilityRole="button"
+                onPress={submit}
+                disabled={!ready || busy}
+                style={[styles.button, (!ready || busy) && { opacity: 0.4 }]}
+              >
+                <Text style={styles.buttonText}>
+                  {busy ? "Opening the album…" : "Begin"}
+                </Text>
+              </PressableScale>
+            </View>
+          </Entrance>
+
+          <Entrance order={4}>
+            <Text style={styles.footnote}>
+              Stories are recorded only with the storyteller's spoken blessing.
+            </Text>
+          </Entrance>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 }
 
@@ -93,20 +117,31 @@ function Field({
 }
 
 const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    backgroundColor: color.paper,
-    paddingHorizontal: space(7),
+  stage: { flex: 1 },
+  scroll: {
+    flexGrow: 1,
     justifyContent: "center",
+    paddingHorizontal: space(6),
+    paddingVertical: space(12),
+    maxWidth: 560,
+    width: "100%",
+    alignSelf: "center",
   },
-  wordmark: { fontFamily: font.display, fontSize: 44, color: color.ink },
   thesis: {
-    ...type.sectionTitle,
-    color: color.inkSoft,
+    fontFamily: font.displaySoft,
+    fontSize: 20,
+    lineHeight: 32,
+    color: color.stageText,
     marginTop: space(2),
-    marginBottom: space(10),
   },
-  form: { gap: space(5) },
+  sheetWrap: { marginTop: space(9) },
+  sheet: {
+    backgroundColor: color.paper,
+    borderRadius: radius.sheet,
+    padding: space(6),
+    gap: space(5),
+    ...shadow.sheet,
+  },
   input: {
     borderBottomWidth: 1,
     borderBottomColor: color.hairline,
@@ -120,8 +155,14 @@ const styles = StyleSheet.create({
     backgroundColor: color.ink,
     paddingVertical: space(4),
     alignItems: "center",
-    borderRadius: 6,
-    marginTop: space(3),
+    borderRadius: 10,
+    marginTop: space(2),
   },
   buttonText: { fontFamily: font.bodyBold, fontSize: 16, color: color.paper },
+  footnote: {
+    ...type.caption,
+    color: color.stageText,
+    textAlign: "center",
+    marginTop: space(6),
+  },
 });

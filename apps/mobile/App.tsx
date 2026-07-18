@@ -43,12 +43,20 @@ function Root() {
         headerShadowVisible: false,
       }}
     >
-      <Stack.Screen name="Home" component={HomeScreen} options={{ title: "The Album" }} />
-      <Stack.Screen name="Chapter" component={ChapterScreen} options={{ title: "" }} />
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ title: "The Album", headerLargeTitle: true }}
+      />
+      <Stack.Screen
+        name="Chapter"
+        component={ChapterScreen}
+        options={{ title: "", animation: "fade_from_bottom" }}
+      />
       <Stack.Screen
         name="AddStoryteller"
         component={AddStorytellerScreen}
-        options={{ title: "New storyteller" }}
+        options={{ title: "New storyteller", presentation: "modal" }}
       />
     </Stack.Navigator>
   );

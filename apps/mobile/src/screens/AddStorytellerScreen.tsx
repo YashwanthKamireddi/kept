@@ -12,6 +12,7 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
 import { color, font, space, type } from "../theme";
+import { Entrance, PressableScale } from "../components/motion";
 import { useApp } from "../state";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AddStoryteller">;
@@ -89,66 +90,74 @@ export function AddStorytellerScreen({ navigation }: Props) {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={type.sectionTitle}>Who tells the stories in your family?</Text>
+        <Entrance order={0}>
+          <Text style={type.sectionTitle}>Who tells the stories in your family?</Text>
+        </Entrance>
 
-        <Field label="Their name" value={name} onChange={setName} placeholder="Rosa Almeida" />
-        <Field
-          label="How should we address them on the call?"
-          value={addressAs}
-          onChange={setAddressAs}
-          placeholder="Grandma Rosa"
-        />
-        <Field
-          label="Phone number"
-          value={phone}
-          onChange={setPhone}
-          placeholder="+15551234567"
-          keyboard="phone-pad"
-        />
+        <Entrance order={1} style={{ gap: space(5) }}>
+          <Field label="Their name" value={name} onChange={setName} placeholder="Rosa Almeida" />
+          <Field
+            label="How should we address them on the call?"
+            value={addressAs}
+            onChange={setAddressAs}
+            placeholder="Grandma Rosa"
+          />
+          <Field
+            label="Phone number"
+            value={phone}
+            onChange={setPhone}
+            placeholder="+15551234567"
+            keyboard="phone-pad"
+          />
+        </Entrance>
 
-        <Text style={[type.label, { marginTop: space(2) }]}>The language they tell stories in</Text>
-        <View style={styles.chips}>
-          {LANGUAGES.map((l) => (
-            <Chip
-              key={l.tag}
-              label={l.label}
-              selected={language === l.tag}
-              onPress={() => setLanguage(l.tag)}
-            />
-          ))}
-        </View>
-
-        <Text style={[type.label, { marginTop: space(2) }]}>First call</Text>
-        <View style={styles.chips}>
-          {options.map((o) => (
-            <Chip
-              key={o.key}
-              label={o.label}
-              selected={callKey === o.key}
-              onPress={() => setCallKey(o.key)}
-            />
-          ))}
-        </View>
-        <Text style={type.caption}>
-          Calls repeat weekly. On the first call we introduce ourselves and ask for
-          their blessing before anything is recorded — they can always say no.
-        </Text>
-
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Pressable
-          accessibilityRole="button"
-          onPress={submit}
-          disabled={!ready || busy}
-          style={({ pressed }) => [
-            styles.button,
-            (!ready || busy) && { opacity: 0.4 },
-            pressed && { opacity: 0.8 },
-          ]}
-        >
-          <Text style={styles.buttonText}>
-            {busy ? "Adding to the album…" : "Add storyteller"}
+        <Entrance order={2}>
+          <Text style={[type.label, { marginBottom: space(2) }]}>
+            The language they tell stories in
           </Text>
-        </Pressable>
+          <View style={styles.chips}>
+            {LANGUAGES.map((l) => (
+              <Chip
+                key={l.tag}
+                label={l.label}
+                selected={language === l.tag}
+                onPress={() => setLanguage(l.tag)}
+              />
+            ))}
+          </View>
+        </Entrance>
+
+        <Entrance order={3}>
+          <Text style={[type.label, { marginBottom: space(2) }]}>First call</Text>
+          <View style={styles.chips}>
+            {options.map((o) => (
+              <Chip
+                key={o.key}
+                label={o.label}
+                selected={callKey === o.key}
+                onPress={() => setCallKey(o.key)}
+              />
+            ))}
+          </View>
+        </Entrance>
+
+        <Entrance order={4} style={{ gap: space(4) }}>
+          <Text style={type.caption}>
+            Calls repeat weekly. On the first call we introduce ourselves and ask for
+            their blessing before anything is recorded — they can always say no.
+          </Text>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <PressableScale
+            accessibilityRole="button"
+            onPress={submit}
+            disabled={!ready || busy}
+            style={[styles.button, (!ready || busy) && { opacity: 0.4 }]}
+          >
+            <Text style={styles.buttonText}>
+              {busy ? "Adding to the album…" : "Add storyteller"}
+            </Text>
+          </PressableScale>
+        </Entrance>
       </ScrollView>
     </KeyboardAvoidingView>
   );

@@ -37,6 +37,27 @@ export interface Sentence {
   anchors: Anchor[];
 }
 
+export interface Segment {
+  id: string;
+  idx: number;
+  speaker: "storyteller" | "biographer";
+  t_start_ms: number;
+  t_end_ms: number;
+  text: string;
+}
+
+export interface SessionDetail extends Session {
+  segments: Segment[];
+}
+
+export interface FollowUp {
+  id: string;
+  question: string;
+  rationale: string;
+  priority: number;
+  status: "pending" | "asked" | "retired";
+}
+
 export interface Chapter {
   id: string;
   ordinal: number;
@@ -114,6 +135,15 @@ export class KathaClient {
 
   listSessions = (storytellerId: string) =>
     this.request<Session[]>("GET", `/storytellers/${storytellerId}/sessions`);
+
+  getSession = (sessionId: string) =>
+    this.request<SessionDetail>("GET", `/sessions/${sessionId}`);
+
+  listFollowUps = (storytellerId: string) =>
+    this.request<FollowUp[]>("GET", `/storytellers/${storytellerId}/follow-ups`);
+
+  retireFollowUp = (followUpId: string) =>
+    this.request<FollowUp>("POST", `/follow-ups/${followUpId}/retire`);
 
   listChapters = (storytellerId: string) =>
     this.request<Chapter[]>("GET", `/storytellers/${storytellerId}/chapters`);

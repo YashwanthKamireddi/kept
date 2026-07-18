@@ -1,19 +1,32 @@
 /**
- * Heirloom — the design tokens.
+ * Heirloom v2 — "the family album, filmed."
  *
- * Grounded in the universal material of family archives: letter paper,
- * fountain-pen ink, gold thread. Gold belongs to the storyteller's voice;
- * ember marks the moment they are speaking. Spend boldness nowhere else.
+ * Two scenes, like cinema:
+ *   COVER scenes (arrival, onboarding) — a deep lamplight-ink stage with
+ *   gold-foil serif type: opening a leather album in the evening.
+ *   PAGE scenes (the album, reading) — warm letter paper in daylight.
+ *
+ * Gold belongs to the storyteller's voice and to foil on covers; ember marks
+ * the moment they are speaking. Spend boldness nowhere else.
  */
 
 export const color = {
-  paper: "#F5F1E8", // aged letter paper — app background
-  surface: "#E4EAEE", // airmail-blue tint — cards & structural surfaces
-  ink: "#232B3A", // fountain-pen blue-black — primary text
-  inkSoft: "#5A6474", // faded ink — secondary text
-  gold: "#A87B23", // gold thread — voice underlines, accents
+  // Page scene (light)
+  paper: "#F6F2E9",
+  surface: "#EDE7D9",
+  ink: "#232B3A",
+  inkSoft: "#5A6474",
+  hairline: "#DAD3C2",
+
+  // Cover scene (dark)
+  stage: "#14181F", // lamplight ink — cover backgrounds
+  stageSoft: "#1D242E", // raised elements on the stage
+  stageText: "#C7CDD8", // secondary text on the stage
+  foil: "#C9A24B", // gold foil on covers (brighter than page gold)
+
+  // Voice
+  gold: "#A87B23", // voice underlines & accents on paper
   ember: "#8C3B2E", // the playing voice, nothing else
-  hairline: "#D8D2C4", // album-page rule lines
 } as const;
 
 export const font = {
@@ -25,21 +38,46 @@ export const font = {
 } as const;
 
 export const type = {
-  chapterTitle: { fontFamily: font.display, fontSize: 30, lineHeight: 40, color: color.ink },
-  sectionTitle: { fontFamily: font.displaySoft, fontSize: 20, lineHeight: 28, color: color.ink },
-  prose: { fontFamily: font.body, fontSize: 18, lineHeight: 32, color: color.ink },
+  wordmark: { fontFamily: font.display, fontSize: 56, lineHeight: 72, color: color.foil },
+  chapterTitle: { fontFamily: font.display, fontSize: 32, lineHeight: 44, color: color.ink },
+  sectionTitle: { fontFamily: font.displaySoft, fontSize: 21, lineHeight: 30, color: color.ink },
+  coverName: { fontFamily: font.display, fontSize: 24, lineHeight: 36, color: color.foil },
+  prose: { fontFamily: font.body, fontSize: 18, lineHeight: 33, color: color.ink },
   label: {
     fontFamily: font.bodyMedium,
-    fontSize: 13,
-    lineHeight: 18,
-    letterSpacing: 1.2,
+    fontSize: 12,
+    lineHeight: 17,
+    letterSpacing: 1.6,
     textTransform: "uppercase" as const,
     color: color.inkSoft,
   },
-  body: { fontFamily: font.body, fontSize: 16, lineHeight: 24, color: color.ink },
-  caption: { fontFamily: font.body, fontSize: 13, lineHeight: 18, color: color.inkSoft },
+  body: { fontFamily: font.body, fontSize: 16, lineHeight: 25, color: color.ink },
+  caption: { fontFamily: font.body, fontSize: 13, lineHeight: 19, color: color.inkSoft },
 } as const;
 
 export const space = (n: number) => n * 4;
 
-export const radius = { card: 6, pill: 999 } as const;
+export const radius = { sheet: 16, cover: 12, pill: 999 } as const;
+
+/** One shadow language: paper objects resting on a table. */
+export const shadow = {
+  sheet: {
+    shadowColor: color.stage,
+    shadowOpacity: 0.22,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 8,
+  },
+  cover: {
+    shadowColor: color.stage,
+    shadowOpacity: 0.28,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
+  },
+} as const;
+
+export const motion = {
+  entrance: 550, // ms — screens settle like a page laid down
+  stagger: 110, // ms between siblings
+} as const;

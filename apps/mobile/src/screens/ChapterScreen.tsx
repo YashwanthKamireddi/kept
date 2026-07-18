@@ -4,6 +4,7 @@ import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
 import { color, space, type } from "../theme";
+import { Entrance, DrawnRule } from "../components/motion";
 import { useApp } from "../state";
 import type { Anchor, ChapterDetail } from "../api/client";
 import { VoiceSentence } from "../components/VoiceSentence";
@@ -76,30 +77,36 @@ export function ChapterScreen({ route }: Props) {
   return (
     <View style={styles.page}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={type.label}>Chapter {chapter.ordinal}</Text>
-        <Text style={[type.chapterTitle, { marginTop: space(1) }]}>{chapter.title}</Text>
-        <View style={styles.rule} />
+        <Entrance order={0}>
+          <Text style={[type.label, { color: color.gold }]}>Chapter {chapter.ordinal}</Text>
+          <Text style={[type.chapterTitle, { marginTop: space(1) }]}>{chapter.title}</Text>
+        </Entrance>
+        <DrawnRule color={color.hairline} order={1} style={styles.rule} />
         {chapter.paragraphs.map((paragraph, pi) => (
-          <Text key={pi} style={styles.paragraph}>
-            {paragraph.map((sentence, si) => {
-              const key = `${pi}:${si}`;
-              return (
-                <VoiceSentence
-                  key={key}
-                  sentence={sentence}
-                  playing={span?.key === key && status.playing}
-                  onPress={() =>
-                    sentence.anchors.length > 0 &&
-                    setSpan({ key, anchor: sentence.anchors[0] })
-                  }
-                />
-              );
-            })}
-          </Text>
+          <Entrance key={pi} order={Math.min(pi + 2, 5)}>
+            <Text style={styles.paragraph}>
+              {paragraph.map((sentence, si) => {
+                const key = `${pi}:${si}`;
+                return (
+                  <VoiceSentence
+                    key={key}
+                    sentence={sentence}
+                    playing={span?.key === key && status.playing}
+                    onPress={() =>
+                      sentence.anchors.length > 0 &&
+                      setSpan({ key, anchor: sentence.anchors[0] })
+                    }
+                  />
+                );
+              })}
+            </Text>
+          </Entrance>
         ))}
-        <Text style={styles.colophon}>
-          Every underlined sentence is anchored to the storyteller’s recorded voice.
-        </Text>
+        <Entrance order={5}>
+          <Text style={styles.colophon}>
+            Every underlined sentence is anchored to the storyteller’s recorded voice.
+          </Text>
+        </Entrance>
       </ScrollView>
       {span && (
         <TapeBar
@@ -117,11 +124,7 @@ const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: color.paper },
   center: { alignItems: "center", justifyContent: "center" },
   scroll: { paddingHorizontal: space(6), paddingTop: space(6), paddingBottom: space(12) },
-  rule: {
-    height: 1,
-    backgroundColor: color.hairline,
-    marginVertical: space(5),
-  },
+  rule: { marginVertical: space(5) },
   paragraph: { marginBottom: space(5) },
   colophon: {
     ...type.caption,
