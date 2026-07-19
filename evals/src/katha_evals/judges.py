@@ -5,7 +5,7 @@ from katha_core import llm
 from katha_core.config import settings
 from pydantic import BaseModel, Field
 
-from .personas import FIXTURE_LIFE_BRIEF, Persona
+from .personas import Persona, storyteller_for
 from .scorecard import DimensionScore, Scorecard
 
 
@@ -40,9 +40,16 @@ genuinely good; a 5 means you could not improve on the turn choices.
 
 def judge_dialogue(persona: Persona, rendered_dialogue: str) -> Scorecard:
     """Blocking judge call — scores one simulated interview."""
+    # The judge must see exactly the brief the interviewer had — for a
+    # first-session persona that is NO brief, and memory_usage should then
+    # reward restraint (no fabricated familiarity), not brief citations.
+    brief = storyteller_for(persona).life_brief or (
+        "(none — this was the very first conversation; the interviewer knew "
+        "only the storyteller's name and how to address them)"
+    )
     content = (
         f"Persona notes (what good looks like here): {persona.judge_notes}\n\n"
-        f"LIFE BRIEF available to the interviewer:\n{FIXTURE_LIFE_BRIEF}\n\n"
+        f"LIFE BRIEF available to the interviewer:\n{brief}\n\n"
         f"TRANSCRIPT:\n{rendered_dialogue}"
     )
     if llm.backend() == "claude-cli":
