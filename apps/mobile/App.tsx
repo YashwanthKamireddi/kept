@@ -13,6 +13,9 @@ import { SignInScreen } from "./src/screens/SignInScreen";
 import { HomeScreen } from "./src/screens/HomeScreen";
 import { ChapterScreen } from "./src/screens/ChapterScreen";
 import { AddStorytellerScreen } from "./src/screens/AddStorytellerScreen";
+import { SessionsScreen } from "./src/screens/SessionsScreen";
+import { TranscriptScreen } from "./src/screens/TranscriptScreen";
+import { FollowUpsScreen } from "./src/screens/FollowUpsScreen";
 import type { RootStackParamList } from "./src/navigation";
 import { color, font } from "./src/theme";
 
@@ -57,6 +60,17 @@ function Root() {
         name="AddStoryteller"
         component={AddStorytellerScreen}
         options={{ title: "New storyteller", presentation: "modal" }}
+      />
+      <Stack.Screen name="Sessions" component={SessionsScreen} options={{ title: "Calls" }} />
+      <Stack.Screen
+        name="Transcript"
+        component={TranscriptScreen}
+        options={{ title: "", animation: "fade_from_bottom" }}
+      />
+      <Stack.Screen
+        name="FollowUps"
+        component={FollowUpsScreen}
+        options={{ title: "Open threads" }}
       />
     </Stack.Navigator>
   );

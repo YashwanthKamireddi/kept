@@ -29,7 +29,7 @@ interface Shelf {
  * (chapters) peeking out beneath.
  */
 export function HomeScreen({ navigation }: Props) {
-  const { client } = useApp();
+  const { client, signOut } = useApp();
   const [shelves, setShelves] = useState<Shelf[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -66,8 +66,13 @@ export function HomeScreen({ navigation }: Props) {
           <Text style={styles.addButton}>Add</Text>
         </Pressable>
       ),
+      headerLeft: () => (
+        <Pressable accessibilityRole="button" onPress={() => void signOut()}>
+          <Text style={styles.signOut}>Sign out</Text>
+        </Pressable>
+      ),
     });
-  }, [navigation]);
+  }, [navigation, signOut]);
 
   return (
     <FlatList
@@ -92,6 +97,18 @@ export function HomeScreen({ navigation }: Props) {
           <Album
             shelf={item}
             onOpenChapter={(chapterId) => navigation.navigate("Chapter", { chapterId })}
+            onOpenSessions={() =>
+              navigation.navigate("Sessions", {
+                storytellerId: item.storyteller.id,
+                name: item.storyteller.name,
+              })
+            }
+            onOpenThreads={() =>
+              navigation.navigate("FollowUps", {
+                storytellerId: item.storyteller.id,
+                name: item.storyteller.name,
+              })
+            }
           />
         </Entrance>
       )}
@@ -102,9 +119,13 @@ export function HomeScreen({ navigation }: Props) {
 function Album({
   shelf,
   onOpenChapter,
+  onOpenSessions,
+  onOpenThreads,
 }: {
   shelf: Shelf;
   onOpenChapter: (chapterId: string) => void;
+  onOpenSessions: () => void;
+  onOpenThreads: () => void;
 }) {
   const { storyteller, chapters } = shelf;
   const visible = chapters.filter((c) => c.status !== "draft");
@@ -139,6 +160,15 @@ function Album({
             </PressableScale>
           ))
         )}
+        <View style={styles.footer}>
+          <PressableScale accessibilityRole="button" onPress={onOpenSessions}>
+            <Text style={styles.footerLink}>Calls</Text>
+          </PressableScale>
+          <Text style={styles.footerDot}>·</Text>
+          <PressableScale accessibilityRole="button" onPress={onOpenThreads}>
+            <Text style={styles.footerLink}>Open threads</Text>
+          </PressableScale>
+        </View>
       </View>
     </View>
   );
@@ -197,4 +227,16 @@ const styles = StyleSheet.create({
   chapterOrdinal: { fontFamily: font.displaySoft, fontSize: 16, color: color.gold },
   chapterGo: { fontFamily: font.body, fontSize: 16, color: color.hairline },
   addButton: { fontFamily: font.bodyBold, fontSize: 16, color: color.gold },
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: space(2),
+    paddingVertical: space(3),
+    borderTopWidth: 1,
+    borderTopColor: color.hairline,
+    marginTop: space(1),
+  },
+  footerLink: { fontFamily: font.bodyMedium, fontSize: 14, color: color.gold },
+  footerDot: { color: color.hairline },
+  signOut: { fontFamily: font.bodyMedium, fontSize: 14, color: color.inkSoft },
 });
