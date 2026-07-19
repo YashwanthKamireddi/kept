@@ -270,5 +270,7 @@ class Chapter(Base):
     status: Mapped[ChapterStatus] = mapped_column(
         Enum(ChapterStatus), default=ChapterStatus.DRAFT
     )
+    # Why a DRAFT was held: [{"text": ..., "reason": ...}] from the verifier.
+    verification_notes: Mapped[list] = mapped_column(JSON, default=list)
     published_at: Mapped[datetime | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(default=_now)

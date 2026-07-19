@@ -42,15 +42,19 @@ Craft:
   original-language words where they carry weight (with gentle context, never
   footnotes).
 - Scenes over summaries. Let the reader stand in the kitchen, hear the train.
-- Short chapter: 4-8 paragraphs.
+- Scale to the material: a short conversation makes a short chapter (even a
+  single paragraph). Never pad, never stretch.
 
 Fidelity rules (absolute):
 - Every sentence that says anything about her life MUST carry the segment ids
   that support it, and must not go beyond what those segments say.
 - Purely connective sentences (transitions with no factual content) must be
-  marked bridge=true and carry no segment ids.
-- Never invent details, dates, names, feelings, or weather. If the transcript
-  doesn't say it, the chapter doesn't say it.
+  marked bridge=true and carry no segment ids. A bridge may not smuggle in
+  claims about her feelings, rankings, or memories ("the memory she treasured
+  most") — if she didn't say it, a bridge can't either.
+- No embellishment, however small: no added sensory detail ("in the dark",
+  weather, colors, sounds), no added dates, names, or feelings. Her words are
+  already enough — that is the whole point of this memoir.
 """
 
 
@@ -238,4 +242,7 @@ def to_chapter(
         title=draft.title,
         body=body,
         status=ChapterStatus.VERIFIED if report.passed else ChapterStatus.DRAFT,
+        verification_notes=[
+            {"text": v.text, "reason": v.reason} for v in report.failures
+        ],
     )
