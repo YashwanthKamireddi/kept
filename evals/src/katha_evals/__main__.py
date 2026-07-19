@@ -75,8 +75,8 @@ async def run() -> int:
             "scores": {k: vars(v) for k, v in card.scores.items()},
             "passed": card.passed,
         }
-        print(card.render())
-        print()
+        print(card.render(), flush=True)
+        print(flush=True)
 
     REPORTS_DIR.mkdir(exist_ok=True)
     out = REPORTS_DIR / f"eval-{datetime.now(UTC):%Y%m%d-%H%M%S}.json"

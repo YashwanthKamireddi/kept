@@ -15,6 +15,7 @@ def test_fixture_brief_plants_memory_probe():
     assert "Ravi" in FIXTURE_LIFE_BRIEF and "Bombay" in FIXTURE_LIFE_BRIEF
     st = storyteller_for(RAJAMMA)
     assert st.life_brief == FIXTURE_LIFE_BRIEF
+    assert st.language == "te-IN"  # column defaults don't apply off-session
     assert storyteller_for(VENKAT).life_brief == ""  # cold-start persona
 
 

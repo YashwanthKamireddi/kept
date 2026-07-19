@@ -104,6 +104,9 @@ def storyteller_for(persona: Persona) -> Storyteller:
         name=persona.display_name,
         address_as=persona.address_as,
         phone_e164="+910000000000",
+        # Column defaults apply on INSERT, not construction — set explicitly
+        # or the interviewer context reads "Language: None".
+        language="te-IN",
         life_brief=FIXTURE_LIFE_BRIEF if persona.key == "rajamma_rambler" else "",
         life_brief_version=1,
     )
