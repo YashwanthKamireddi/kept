@@ -15,6 +15,7 @@ import { VoiceSentence } from "../design/components/VoiceSentence";
 import { TapeBar } from "../design/components/TapeBar";
 import { EnvelopeReveal } from "../design/components/EnvelopeReveal";
 import { ListeningRoom } from "../design/components/ListeningRoom";
+import { KeepsakeCard } from "../design/components/KeepsakeCard";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Chapter">;
 
@@ -42,6 +43,7 @@ export function ChapterScreen({ route }: Props) {
   const [revealed, setRevealed] = useState(false);
   const [span, setSpan] = useState<PlayingSpan | null>(null);
   const [roomOpen, setRoomOpen] = useState(false);
+  const [keepsakeOpen, setKeepsakeOpen] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const [sourceUrl, setSourceUrl] = useState<string | null>(null);
   const wasPlaying = useRef(false);
@@ -171,6 +173,16 @@ export function ChapterScreen({ route }: Props) {
         storytellerName={route.params.storytellerName ?? ""}
         playing={status.playing}
         onClose={() => setRoomOpen(false)}
+        onKeepsake={() => {
+          setRoomOpen(false);
+          setKeepsakeOpen(true);
+        }}
+      />
+      <KeepsakeCard
+        visible={keepsakeOpen && span !== null}
+        quote={span?.text ?? ""}
+        storytellerName={route.params.storytellerName ?? ""}
+        onClose={() => setKeepsakeOpen(false)}
       />
     </Page>
   );

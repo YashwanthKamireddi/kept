@@ -106,11 +106,17 @@ class ChapterDetailOut(ChapterOut):
     paragraphs: list[list[SentenceOut]]
 
 
+class FollowUpIn(BaseModel):
+    question: str = Field(min_length=5, max_length=500)
+    rationale: str = Field(default="", max_length=500)
+
+
 class FollowUpOut(BaseModel):
     id: str
     question: str
     rationale: str
     priority: int
     status: FollowUpStatus
+    asked_by_name: str | None = None
 
     model_config = {"from_attributes": True}

@@ -5,6 +5,9 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
 import { color, font, space, type } from "../design/tokens";
 import { Entrance, PressableScale } from "../design/motion";
+import { Field } from "../design/components/Field";
+import { Page } from "../design/materials";
+import { haptic } from "../design/haptics";
 import { useApp } from "../state";
 import type { FollowUp } from "../api/client";
 
@@ -18,6 +21,8 @@ export function FollowUpsScreen({ route }: Props) {
   const { client } = useApp();
   const [threads, setThreads] = useState<FollowUp[]>([]);
   const [loading, setLoading] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [sending, setSending] = useState(false);
 
   const load = useCallback(async () => {
     if (!client) return;
@@ -42,19 +47,49 @@ export function FollowUpsScreen({ route }: Props) {
     await load();
   };
 
+  const ask = async () => {
+    if (!client || question.trim().length < 5) return;
+    setSending(true);
+    try {
+      await client.createFollowUp(route.params.storytellerId, question.trim());
+      haptic.success();
+      setQuestion("");
+      await load();
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
+    <Page>
     <FlatList
-      style={styles.page}
+      style={{ flex: 1 }}
       contentContainerStyle={styles.content}
       data={threads}
       keyExtractor={(f) => f.id}
       refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
       ListHeaderComponent={
-        <Entrance order={0}>
+        <Entrance order={0} style={{ gap: space(4), marginBottom: space(4) }}>
           <Text style={type.label}>
             What we hope to ask {route.params.name} next
           </Text>
-          <Text style={[type.caption, { marginTop: space(2) }]}>
+          <Field
+            label="Ask them something"
+            value={question}
+            onChange={setQuestion}
+            placeholder="What songs did your mother sing?"
+          />
+          <PressableScale
+            accessibilityRole="button"
+            onPress={ask}
+            disabled={sending || question.trim().length < 5}
+            style={[styles.askButton, (sending || question.trim().length < 5) && { opacity: 0.4 }]}
+          >
+            <Text style={styles.askText}>
+              {sending ? "Adding to the threads…" : "Add to the next calls"}
+            </Text>
+          </PressableScale>
+          <Text style={type.caption}>
             Remove anything the family would rather leave untouched — it will
             never be raised on a call.
           </Text>
@@ -75,6 +110,11 @@ export function FollowUpsScreen({ route }: Props) {
             <View style={{ flex: 1, gap: space(1) }}>
               <Text style={type.body}>{item.question}</Text>
               {item.rationale ? <Text style={type.caption}>{item.rationale}</Text> : null}
+              {item.asked_by_name ? (
+                <Text style={[type.caption, { color: color.gold }]}>
+                  Asked by {item.asked_by_name}
+                </Text>
+              ) : null}
             </View>
             <PressableScale
               accessibilityRole="button"
@@ -87,11 +127,11 @@ export function FollowUpsScreen({ route }: Props) {
         </Entrance>
       )}
     />
+    </Page>
   );
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: color.paper },
   content: { padding: space(5), gap: space(3), paddingBottom: space(12) },
   thread: {
     flexDirection: "row",
@@ -102,4 +142,11 @@ const styles = StyleSheet.create({
     borderBottomColor: color.hairline,
   },
   remove: { fontFamily: font.bodyMedium, fontSize: 14, color: color.ember },
+  askButton: {
+    backgroundColor: color.ink,
+    paddingVertical: space(3),
+    alignItems: "center",
+    borderRadius: 10,
+  },
+  askText: { fontFamily: font.bodyBold, fontSize: 15, color: color.paper },
 });

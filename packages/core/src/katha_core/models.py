@@ -232,6 +232,10 @@ class FollowUp(Base):
     source_session_id: Mapped[str | None] = mapped_column(
         ForeignKey("call_sessions.id"), default=None
     )
+    # Set when a family member suggested this question ("Ask her something").
+    asked_by_keeper_id: Mapped[str | None] = mapped_column(
+        ForeignKey("keepers.id"), default=None
+    )
     priority: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[FollowUpStatus] = mapped_column(
         Enum(FollowUpStatus), default=FollowUpStatus.PENDING

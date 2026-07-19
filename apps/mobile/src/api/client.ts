@@ -56,6 +56,7 @@ export interface FollowUp {
   rationale: string;
   priority: number;
   status: "pending" | "asked" | "retired";
+  asked_by_name: string | null;
 }
 
 export interface Chapter {
@@ -144,6 +145,11 @@ export class KathaClient {
 
   retireFollowUp = (followUpId: string) =>
     this.request<FollowUp>("POST", `/follow-ups/${followUpId}/retire`);
+
+  createFollowUp = (storytellerId: string, question: string) =>
+    this.request<FollowUp>("POST", `/storytellers/${storytellerId}/follow-ups`, {
+      question,
+    });
 
   listChapters = (storytellerId: string) =>
     this.request<Chapter[]>("GET", `/storytellers/${storytellerId}/chapters`);

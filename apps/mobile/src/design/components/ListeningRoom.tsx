@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { color, space, type } from "../tokens";
 import { Lamplight } from "../materials";
-import { useReduceMotion } from "../motion";
+import { PressableScale, useReduceMotion } from "../motion";
 
 /**
  * The lights go down. While the storyteller speaks, everything disappears
@@ -15,12 +15,14 @@ export function ListeningRoom({
   storytellerName,
   playing,
   onClose,
+  onKeepsake,
 }: {
   visible: boolean;
   sentence: string;
   storytellerName: string;
   playing: boolean;
   onClose: () => void;
+  onKeepsake?: () => void;
 }) {
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
@@ -30,6 +32,11 @@ export function ListeningRoom({
           <Text style={styles.sentence}>{sentence}</Text>
           {storytellerName ? (
             <Text style={[type.coverName, styles.name]}>{storytellerName}</Text>
+          ) : null}
+          {onKeepsake ? (
+            <PressableScale accessibilityRole="button" onPress={onKeepsake}>
+              <Text style={styles.keepsake}>Keep this moment</Text>
+            </PressableScale>
           ) : null}
           <Text style={styles.hint}>tap anywhere to return</Text>
         </Lamplight>
@@ -103,6 +110,13 @@ const styles = StyleSheet.create({
   },
   sentence: { ...type.proseLarge, textAlign: "center" },
   name: { fontSize: 18, lineHeight: 26 },
+  keepsake: {
+    fontFamily: "Mukta_500Medium",
+    fontSize: 14,
+    color: color.foil,
+    textDecorationLine: "underline",
+    textDecorationColor: color.foil,
+  },
   hint: {
     ...type.caption,
     color: color.stageText,

@@ -261,14 +261,50 @@ async def resolve_audio(audio_key: str, db: Db, keeper: CurrentKeeper) -> dict:
     response_model=list[schemas.FollowUpOut],
     tags=["follow-ups"],
 )
-async def list_follow_ups(storyteller_id: str, db: Db, keeper: CurrentKeeper) -> list[FollowUp]:
+async def list_follow_ups(
+    storyteller_id: str, db: Db, keeper: CurrentKeeper
+) -> list[schemas.FollowUpOut]:
     await _owned_storyteller(db, keeper, storyteller_id)
-    return list(
-        await db.scalars(
-            select(FollowUp)
+    rows = (
+        await db.execute(
+            select(FollowUp, Keeper.name)
+            .outerjoin(Keeper, FollowUp.asked_by_keeper_id == Keeper.id)
             .where(FollowUp.storyteller_id == storyteller_id)
             .order_by(FollowUp.priority.desc())
         )
+    ).all()
+    return [
+        schemas.FollowUpOut(
+            **schemas.FollowUpOut.model_validate(fu).model_dump(exclude={"asked_by_name"}),
+            asked_by_name=name,
+        )
+        for fu, name in rows
+    ]
+
+
+@router.post(
+    "/storytellers/{storyteller_id}/follow-ups",
+    response_model=schemas.FollowUpOut,
+    tags=["follow-ups"],
+)
+async def ask_something(
+    storyteller_id: str, body: schemas.FollowUpIn, db: Db, keeper: CurrentKeeper
+) -> schemas.FollowUpOut:
+    """'Ask her something' — a family-suggested question. It joins the open
+    threads the session planner already draws from, so it reaches a real call."""
+    await _owned_storyteller(db, keeper, storyteller_id)
+    fu = FollowUp(
+        storyteller_id=storyteller_id,
+        question=body.question.strip(),
+        rationale=body.rationale.strip(),
+        priority=6,  # family asks rank above routine threads, below urgent ones
+        asked_by_keeper_id=keeper.id,
+    )
+    db.add(fu)
+    await db.commit()
+    return schemas.FollowUpOut(
+        **schemas.FollowUpOut.model_validate(fu).model_dump(exclude={"asked_by_name"}),
+        asked_by_name=keeper.name,
     )
 
 
