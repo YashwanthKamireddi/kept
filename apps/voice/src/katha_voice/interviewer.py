@@ -83,6 +83,27 @@ def system_blocks(storyteller: Storyteller, session_plan: str) -> list[dict]:
     ]
 
 
+def complete_turn_cli(
+    storyteller: Storyteller, session_plan: str, dialogue: list[dict]
+) -> str:
+    """Blocking one-shot turn on the claude-cli backend (evals/dev only —
+    per-turn latency is far too high for a live phone call)."""
+    from katha_core import llm  # noqa: PLC0415
+
+    blocks = system_blocks(storyteller, session_plan)
+    system = "\n\n".join(b["text"] for b in blocks)
+    lines = []
+    for m in dialogue:
+        who = "BIOGRAPHER (you)" if m["role"] == "assistant" else "STORYTELLER"
+        lines.append(f"{who}: {m['content']}")
+    prompt = (
+        "The conversation so far:\n" + "\n".join(lines) +
+        "\n\nReply with ONLY your next spoken turn as the biographer — no name "
+        "prefix, no stage directions."
+    )
+    return llm.cli_text(system, prompt)
+
+
 async def stream_turn(
     client: AsyncAnthropic,
     storyteller: Storyteller,

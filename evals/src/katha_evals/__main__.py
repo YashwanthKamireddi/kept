@@ -22,7 +22,12 @@ REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
 
 
 def _credentials_ok() -> bool:
-    """Probe the credential chain: explicit key, env, or `ant auth login`."""
+    """Probe the credential chain: explicit key, env, or `ant auth login`.
+    The claude-cli backend authenticates through Claude Code itself."""
+    from katha_core import llm  # noqa: PLC0415
+
+    if llm.backend() == "claude-cli":
+        return True
     import anthropic  # noqa: PLC0415
 
     try:

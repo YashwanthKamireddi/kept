@@ -27,6 +27,12 @@ class Settings(BaseSettings):
     # Cheap fast model for pipeline classification/verification passes.
     utility_model: str = "claude-haiku-4-5"
 
+    # "api" (Anthropic SDK, needs credits; required for live calls) or
+    # "claude-cli" (headless Claude Code on the dev's subscription — free,
+    # slower; pipeline/evals only).
+    llm_backend: str = ""
+    cli_model: str = "sonnet"  # conserve subscription quota on background work
+
 
 @lru_cache
 def settings() -> Settings:

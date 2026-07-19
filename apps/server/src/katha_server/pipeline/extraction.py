@@ -9,6 +9,7 @@ indices don't exist in the transcript.
 from typing import Literal
 
 import anthropic
+from katha_core import llm
 from katha_core.config import settings
 from katha_core.models import Speaker, TranscriptSegment
 from pydantic import BaseModel, Field
@@ -78,6 +79,9 @@ def validate_provenance(result: ExtractionResult, valid_idxs: set[int]) -> Extra
 
 def extract(segments: list[TranscriptSegment]) -> ExtractionResult:
     """Blocking Claude call — run via asyncio.to_thread from async code."""
+    if llm.backend() == "claude-cli":
+        result = llm.cli_structured(_SYSTEM, transcript_block(segments), ExtractionResult)
+        return validate_provenance(result, {s.idx for s in segments})
     client = anthropic.Anthropic(api_key=settings().anthropic_api_key or None)
     response = client.messages.parse(
         model=settings().interviewer_model,

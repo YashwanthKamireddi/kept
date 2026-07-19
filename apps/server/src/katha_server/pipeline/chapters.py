@@ -15,6 +15,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 import anthropic
+from katha_core import llm
 from katha_core.config import settings
 from katha_core.models import Chapter, ChapterStatus, TranscriptSegment
 from pydantic import BaseModel, Field
@@ -72,6 +73,8 @@ def draft_chapter(
             "chapter fixing exactly these problems (anchor every factual sentence "
             f"to real segments; keep bridges fact-free):\n{feedback}"
         )
+    if llm.backend() == "claude-cli":
+        return llm.cli_structured(_WRITER_SYSTEM, content, ChapterDraft)
     client = anthropic.Anthropic(api_key=settings().anthropic_api_key or None)
     response = client.messages.parse(
         model=settings().interviewer_model,
@@ -118,8 +121,11 @@ class _JudgeVerdict(BaseModel):
     reason: str = ""
 
 
+_JUDGE_SYSTEM_LINE = "You are a strict fidelity checker for a memoir. Judge only support, not style."
+
+
 def llm_judge(sentence: str, segment_texts: list[str], bridge: bool) -> bool:
-    """Haiku fidelity check for one sentence. Blocking."""
+    """Fidelity check for one sentence. Blocking."""
     client = anthropic.Anthropic(api_key=settings().anthropic_api_key or None)
     if bridge:
         question = (
@@ -134,10 +140,13 @@ def llm_judge(sentence: str, segment_texts: list[str], bridge: bool) -> bool:
             "may rephrase and translate, but must not add facts, intensify claims, or "
             f"attribute anything not present.\n\nSentence: {sentence}\n\nTranscript:\n{joined}"
         )
+    if llm.backend() == "claude-cli":
+        verdict = llm.cli_structured(_JUDGE_SYSTEM_LINE, question, _JudgeVerdict)
+        return verdict.supported
     response = client.messages.parse(
         model=settings().utility_model,
         max_tokens=300,
-        system="You are a strict fidelity checker for a memoir. Judge only support, not style.",
+        system=_JUDGE_SYSTEM_LINE,
         messages=[{"role": "user", "content": question}],
         output_format=_JudgeVerdict,
     )

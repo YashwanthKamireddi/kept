@@ -1,6 +1,7 @@
 """LLM judges: score a simulated interview transcript on the craft dimensions."""
 
 import anthropic
+from katha_core import llm
 from katha_core.config import settings
 from pydantic import BaseModel, Field
 
@@ -39,25 +40,24 @@ genuinely good; a 5 means you could not improve on the turn choices.
 
 def judge_dialogue(persona: Persona, rendered_dialogue: str) -> Scorecard:
     """Blocking judge call — scores one simulated interview."""
-    client = anthropic.Anthropic(api_key=settings().anthropic_api_key or None)
-    response = client.messages.parse(
-        model=settings().interviewer_model,
-        max_tokens=4000,
-        thinking={"type": "adaptive"},
-        system=_JUDGE_SYSTEM,
-        messages=[
-            {
-                "role": "user",
-                "content": (
-                    f"Persona notes (what good looks like here): {persona.judge_notes}\n\n"
-                    f"LIFE BRIEF available to the interviewer:\n{FIXTURE_LIFE_BRIEF}\n\n"
-                    f"TRANSCRIPT:\n{rendered_dialogue}"
-                ),
-            }
-        ],
-        output_format=_Judgment,
+    content = (
+        f"Persona notes (what good looks like here): {persona.judge_notes}\n\n"
+        f"LIFE BRIEF available to the interviewer:\n{FIXTURE_LIFE_BRIEF}\n\n"
+        f"TRANSCRIPT:\n{rendered_dialogue}"
     )
-    judgment = response.parsed_output
+    if llm.backend() == "claude-cli":
+        judgment = llm.cli_structured(_JUDGE_SYSTEM, content, _Judgment)
+    else:
+        client = anthropic.Anthropic(api_key=settings().anthropic_api_key or None)
+        response = client.messages.parse(
+            model=settings().interviewer_model,
+            max_tokens=4000,
+            thinking={"type": "adaptive"},
+            system=_JUDGE_SYSTEM,
+            messages=[{"role": "user", "content": content}],
+            output_format=_Judgment,
+        )
+        judgment = response.parsed_output
     if judgment is None:
         raise RuntimeError("judge returned no parsable output")
     card = Scorecard(persona_key=persona.key)
