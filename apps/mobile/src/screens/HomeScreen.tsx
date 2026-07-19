@@ -150,6 +150,7 @@ function Album({
 }) {
   const { storyteller, chapters, live } = shelf;
   const visible = chapters.filter((c) => c.status !== "draft");
+  const checking = chapters.some((c) => c.status === "draft");
   const breath = useBreath(live);
   const glow = breath.interpolate({ inputRange: [0.55, 1], outputRange: [0.1, 0] });
   return (
@@ -190,6 +191,11 @@ function Album({
               <Text style={styles.chapterGo}>→</Text>
             </PressableScale>
           ))
+        )}
+        {checking && (
+          <Text style={[type.caption, { color: color.gold, paddingVertical: space(1) }]}>
+            A new chapter is being checked for faithfulness…
+          </Text>
         )}
         <View style={styles.footer}>
           <PressableScale accessibilityRole="button" onPress={onOpenSessions}>
