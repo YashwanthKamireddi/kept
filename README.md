@@ -1,8 +1,8 @@
-# Katha (working codename)
+# Kept (name pending final trademark/domain check)
 
 A biographer for every family, in the family's own language.
 
-A warm voice-AI biographer calls an elder on an ordinary phone, interviews them
+Kept is a warm voice-AI biographer that calls an elder on an ordinary phone, interviews them
 in their own language — any language, remembers every session, and turns a
 life of memories into a living, audio-anchored family memoir.
 

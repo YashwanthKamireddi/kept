@@ -39,7 +39,7 @@ genuinely good; a 5 means you could not improve on the turn choices.
 
 def judge_dialogue(persona: Persona, rendered_dialogue: str) -> Scorecard:
     """Blocking judge call — scores one simulated interview."""
-    client = anthropic.Anthropic(api_key=settings().anthropic_api_key)
+    client = anthropic.Anthropic(api_key=settings().anthropic_api_key or None)
     response = client.messages.parse(
         model=settings().interviewer_model,
         max_tokens=4000,

@@ -45,6 +45,8 @@ AGENT_NAME = "katha"
 
 
 def preflight() -> list[str]:
+    # ANTHROPIC_API_KEY is intentionally not required here: with it unset, the
+    # SDK falls through to the ambient credential chain (`ant auth login`).
     s = settings()
     return [
         name
@@ -52,7 +54,6 @@ def preflight() -> list[str]:
             "LIVEKIT_URL": s.livekit_url,
             "LIVEKIT_API_KEY": s.livekit_api_key,
             "LIVEKIT_API_SECRET": s.livekit_api_secret,
-            "ANTHROPIC_API_KEY": s.anthropic_api_key,
             "SARVAM_API_KEY": s.sarvam_api_key,
         }.items()
         if not value
@@ -63,11 +64,11 @@ class KathaAgent(Agent):
     def __init__(self, *, storyteller, session_plan: str, seed_dialogue: list[dict]):
         # Craft prompt + Life Brief live in our own system blocks (interviewer.py);
         # instructions here are minimal because llm_node bypasses them.
-        super().__init__(instructions="You are Katha, a warm voice biographer.")
+        super().__init__(instructions="You are Kept, a warm voice biographer.")
         self._storyteller = storyteller
         self._session_plan = session_plan
         self._seed = seed_dialogue
-        self._client = AsyncAnthropic(api_key=settings().anthropic_api_key)
+        self._client = AsyncAnthropic(api_key=settings().anthropic_api_key or None)
 
     async def llm_node(self, chat_ctx, tools, model_settings):
         dialogue = list(self._seed)

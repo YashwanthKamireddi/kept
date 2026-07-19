@@ -29,7 +29,7 @@ async def _persona_reply(client: AsyncAnthropic, persona: Persona, dialogue: lis
 async def simulate(persona: Persona, turns: int = 8) -> list[dict]:
     """Returns the dialogue from the interviewer's POV:
     assistant = biographer, user = storyteller."""
-    client = AsyncAnthropic(api_key=settings().anthropic_api_key)
+    client = AsyncAnthropic(api_key=settings().anthropic_api_key or None)
     storyteller = storyteller_for(persona)
     plan = FIXTURE_SESSION_PLAN
 

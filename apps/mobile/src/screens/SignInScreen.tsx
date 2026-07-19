@@ -52,7 +52,7 @@ export function SignInScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <Entrance order={0}>
-            <Text style={type.wordmark}>Katha</Text>
+            <Text style={type.wordmark}>Kept</Text>
           </Entrance>
           <Entrance order={1}>
             <Text style={styles.thesis}>

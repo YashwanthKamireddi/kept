@@ -78,7 +78,7 @@ def validate_provenance(result: ExtractionResult, valid_idxs: set[int]) -> Extra
 
 def extract(segments: list[TranscriptSegment]) -> ExtractionResult:
     """Blocking Claude call — run via asyncio.to_thread from async code."""
-    client = anthropic.Anthropic(api_key=settings().anthropic_api_key)
+    client = anthropic.Anthropic(api_key=settings().anthropic_api_key or None)
     response = client.messages.parse(
         model=settings().interviewer_model,
         max_tokens=16000,

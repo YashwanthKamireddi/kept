@@ -72,7 +72,7 @@ def draft_chapter(
             "chapter fixing exactly these problems (anchor every factual sentence "
             f"to real segments; keep bridges fact-free):\n{feedback}"
         )
-    client = anthropic.Anthropic(api_key=settings().anthropic_api_key)
+    client = anthropic.Anthropic(api_key=settings().anthropic_api_key or None)
     response = client.messages.parse(
         model=settings().interviewer_model,
         max_tokens=16000,
@@ -120,7 +120,7 @@ class _JudgeVerdict(BaseModel):
 
 def llm_judge(sentence: str, segment_texts: list[str], bridge: bool) -> bool:
     """Haiku fidelity check for one sentence. Blocking."""
-    client = anthropic.Anthropic(api_key=settings().anthropic_api_key)
+    client = anthropic.Anthropic(api_key=settings().anthropic_api_key or None)
     if bridge:
         question = (
             "Is this memoir sentence pure narrative transition, asserting NO specific "

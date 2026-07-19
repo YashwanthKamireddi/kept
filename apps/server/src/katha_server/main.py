@@ -13,7 +13,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Katha", lifespan=lifespan)
+app = FastAPI(title="Kept", lifespan=lifespan)
 
 # Dev: the Expo web preview (localhost:8081) is cross-origin to this API.
 # Tighten to the real app origins before any public deployment.

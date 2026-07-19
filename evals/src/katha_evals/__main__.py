@@ -21,9 +21,26 @@ from .simulator import render_dialogue, simulate
 REPORTS_DIR = Path(__file__).resolve().parents[2] / "reports"
 
 
+def _credentials_ok() -> bool:
+    """Probe the credential chain: explicit key, env, or `ant auth login`."""
+    import anthropic  # noqa: PLC0415
+
+    try:
+        client = anthropic.Anthropic(api_key=settings().anthropic_api_key or None)
+        client.models.list()
+        return True
+    except Exception:
+        return False
+
+
 async def run() -> int:
-    if not settings().anthropic_api_key:
-        print("katha-evals: ANTHROPIC_API_KEY not set (see .env.example)", file=sys.stderr)
+    if not _credentials_ok():
+        print(
+            "katha-evals: no working Anthropic credentials.\n"
+            "Either set ANTHROPIC_API_KEY in .env, or run `ant auth login` "
+            "(the SDK picks up the profile automatically).",
+            file=sys.stderr,
+        )
         return 2
 
     cards: list[Scorecard] = []
