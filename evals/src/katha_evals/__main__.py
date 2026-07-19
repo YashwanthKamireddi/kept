@@ -43,12 +43,25 @@ async def run() -> int:
         )
         return 2
 
+    import anthropic  # noqa: PLC0415
+
     cards: list[Scorecard] = []
     report: dict = {"ran_at": datetime.now(UTC).isoformat(), "personas": {}}
 
     for persona in PERSONAS:
         print(f"simulating: {persona.key} ...", flush=True)
-        dialogue = await simulate(persona)
+        try:
+            dialogue = await simulate(persona)
+        except anthropic.BadRequestError as e:
+            if "credit balance" in str(e):
+                print(
+                    "katha-evals: the Anthropic org has no API credits. "
+                    "Buy a small prepaid pack at platform.claude.com -> Plans & Billing, "
+                    "then re-run.",
+                    file=sys.stderr,
+                )
+                return 3
+            raise
         rendered = render_dialogue(dialogue)
         card = await asyncio.to_thread(judge_dialogue, persona, rendered)
         cards.append(card)
