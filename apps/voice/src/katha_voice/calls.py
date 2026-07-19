@@ -8,6 +8,7 @@ finalize) and a resumed call re-opens mid-thought instead of starting over.
 from datetime import UTC, datetime
 
 from katha_core.db import session as db_session
+from katha_core.log import get_logger
 from katha_core.models import (
     CallSession,
     SessionStatus,
@@ -16,6 +17,9 @@ from katha_core.models import (
     TranscriptSegment,
 )
 from sqlalchemy import select
+
+
+log = get_logger("calls")
 
 
 class CallStateError(RuntimeError):
@@ -37,6 +41,7 @@ async def begin_call(session_id: str) -> CallSession:
         call.status = SessionStatus.IN_PROGRESS
         call.started_at = datetime.now(UTC)
         await s.commit()
+        log.info("call begun session=%s", session_id)
         return call
 
 
@@ -54,6 +59,7 @@ async def complete_call(session_id: str, audio_key: str = "") -> CallSession:
             call.duration_seconds = int((call.ended_at - started).total_seconds())
         call.audio_key = audio_key
         await s.commit()
+        log.info("call completed session=%s duration_s=%d", session_id, call.duration_seconds)
         return call
 
 
@@ -65,6 +71,7 @@ async def drop_call(session_id: str) -> CallSession:
         call.status = SessionStatus.DROPPED
         call.ended_at = datetime.now(UTC)
         await s.commit()
+        log.warning("call dropped session=%s (resumable)", session_id)
         return call
 
 
@@ -83,6 +90,7 @@ async def start_resume(dropped_session_id: str) -> CallSession:
         )
         s.add(resumed)
         await s.commit()
+        log.info("call resumed from=%s new_session=%s", dropped_session_id, resumed.id)
         return resumed
 
 

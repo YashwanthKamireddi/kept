@@ -23,6 +23,8 @@ from katha_core.models import (
 )
 from sqlalchemy import func, select
 
+from katha_core.log import get_logger
+
 from .dispatch import Dispatcher
 from .pipeline.chapters import (
     Judge,
@@ -34,6 +36,8 @@ from .pipeline.chapters import (
 from .pipeline.extraction import extract
 from .pipeline.planner import plan_session
 from .pipeline.runner import Extractor, process_session
+
+log = get_logger("scheduler")
 
 _ACTIVE = {SessionStatus.SCHEDULED, SessionStatus.DIALING, SessionStatus.IN_PROGRESS}
 
@@ -86,6 +90,10 @@ async def start_due_calls(now: datetime, dispatcher: Dispatcher) -> list[CallSes
             s.add(call)
             await s.commit()
         await dispatcher.dispatch(call, storyteller)
+        log.info(
+            "call dispatched session=%s storyteller=%s theme=%r",
+            call.id, storyteller.id, themes[0] if themes else "",
+        )
         started.append(call)
     return started
 
@@ -131,6 +139,12 @@ async def finish_call(
         assert st is not None
         st.next_call_at = datetime.now(UTC) + timedelta(days=st.cadence_days)
         await s.commit()
+    log.info(
+        "call finished session=%s chapter_ordinal=%d chapter_status=%s "
+        "fidelity_failures=%d brief_version=%d next_call=%s",
+        session_id, chapter.ordinal, chapter.status.value,
+        len(report.failures), storyteller.life_brief_version, st.next_call_at,
+    )
     return chapter
 
 

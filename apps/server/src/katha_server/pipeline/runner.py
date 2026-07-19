@@ -15,6 +15,7 @@ import asyncio
 from collections.abc import Callable
 
 from katha_core.db import session as db_session
+from katha_core.log import get_logger
 from katha_core.models import (
     CallSession,
     Entity,
@@ -29,6 +30,8 @@ from sqlalchemy import select
 from .extraction import ExtractionResult, extract
 from .life_brief import compile_life_brief
 from .resolution import _norm, resolve
+
+log = get_logger("pipeline")
 
 Extractor = Callable[[list[TranscriptSegment]], ExtractionResult]
 
@@ -114,4 +117,10 @@ async def process_session(session_id: str, extractor: Extractor = extract) -> St
         storyteller.life_brief_version += 1
 
         await s.commit()
+        log.info(
+            "session processed session=%s storyteller=%s new_entities=%d facts=%d "
+            "follow_ups=%d brief_version=%d",
+            session_id, storyteller.id, len(new_entities), len(result.facts),
+            len(result.follow_ups), storyteller.life_brief_version,
+        )
         return storyteller
