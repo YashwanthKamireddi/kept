@@ -17,7 +17,7 @@ from dataclasses import dataclass
 import anthropic
 from katha_core import llm
 from katha_core.config import settings
-from katha_core.models import Chapter, ChapterStatus, TranscriptSegment
+from katha_core.models import Chapter, ChapterStatus, Speaker, TranscriptSegment
 from pydantic import BaseModel, Field
 
 
@@ -142,7 +142,11 @@ def llm_judge(sentence: str, segment_texts: list[str], bridge: bool) -> bool:
         question = (
             "Does the transcript below FULLY support this memoir sentence? The sentence "
             "may rephrase and translate, but must not add facts, intensify claims, or "
-            f"attribute anything not present.\n\nSentence: {sentence}\n\nTranscript:\n{joined}"
+            "attribute anything not present. Transcript lines may include the "
+            "interviewer's question in parentheses — an elliptical answer read WITH its "
+            "question counts as full support (\"Who woke first?\" + \"My mother, always\" "
+            "supports \"My mother woke first\"). Verbatim or near-verbatim reuse is always "
+            f"supported.\n\nSentence: {sentence}\n\nTranscript:\n{joined}"
         )
     if llm.backend() == "claude-cli":
         verdict = llm.cli_structured(_JUDGE_SYSTEM_LINE, question, _JudgeVerdict)
@@ -158,44 +162,88 @@ def llm_judge(sentence: str, segment_texts: list[str], bridge: bool) -> bool:
     return bool(verdict and verdict.supported)
 
 
+def _verbatimish(sentence: str, anchor_texts: list[str]) -> bool:
+    """True when the sentence appears word-for-word inside its anchors.
+    Verbatim cannot be embellishment — no judge needed."""
+    words = " ".join("".join(c.lower() for c in sentence if c.isalnum() or c.isspace()).split())
+    haystack = " ".join(
+        "".join(c.lower() for c in t if c.isalnum() or c.isspace()) for t in anchor_texts
+    )
+    haystack = " ".join(haystack.split())
+    return bool(words) and words in haystack
+
+
 def verify_chapter(
     draft: ChapterDraft,
     segments: list[TranscriptSegment],
     judge: Judge = llm_judge,
 ) -> VerificationReport:
+    """Structural checks run inline; judge calls run in parallel (order kept).
+    Verbatim sentences pass deterministically. Anchored answers are judged
+    WITH the biographer question that elicited them — conversational answers
+    are elliptical, and judging them alone produces false holds."""
+    from concurrent.futures import ThreadPoolExecutor  # noqa: PLC0415
+
     by_id = {s.id: s for s in segments}
-    verdicts: list[SentenceVerdict] = []
+    # For each segment, the closest preceding biographer turn (its question).
+    ordered = sorted(segments, key=lambda s: s.idx)
+    question_for: dict[str, str] = {}
+    last_question = ""
+    for seg in ordered:
+        if seg.speaker == Speaker.BIOGRAPHER:
+            last_question = seg.text
+        else:
+            question_for[seg.id] = last_question
+    # (verdict-or-None, pending judge args) per sentence, order preserved.
+    slots: list[SentenceVerdict | None] = []
+    pending: list[tuple[int, str, list[str], bool, str]] = []
 
     for paragraph in draft.paragraphs:
         for sent in paragraph:
             if sent.bridge:
                 if sent.segment_ids:
-                    verdicts.append(
+                    slots.append(
                         SentenceVerdict(sent.text, False, "bridge sentence carries anchors")
                     )
                     continue
-                ok = judge(sent.text, [], True)
-                verdicts.append(
-                    SentenceVerdict(sent.text, ok, "" if ok else "bridge asserts facts")
+                pending.append(
+                    (len(slots), sent.text, [], True, "bridge asserts facts")
                 )
+                slots.append(None)
                 continue
 
             if not sent.segment_ids:
-                verdicts.append(SentenceVerdict(sent.text, False, "no anchors"))
+                slots.append(SentenceVerdict(sent.text, False, "no anchors"))
                 continue
             missing = [i for i in sent.segment_ids if i not in by_id]
             if missing:
-                verdicts.append(
+                slots.append(
                     SentenceVerdict(sent.text, False, f"phantom segment ids: {missing}")
                 )
                 continue
-            texts = [by_id[i].text for i in sent.segment_ids]
-            ok = judge(sent.text, texts, False)
-            verdicts.append(
-                SentenceVerdict(sent.text, ok, "" if ok else "not supported by anchors")
+            raw_texts = [by_id[i].text for i in sent.segment_ids]
+            if _verbatimish(sent.text, raw_texts):
+                slots.append(SentenceVerdict(sent.text, True, ""))
+                continue
+            texts = []
+            for i in sent.segment_ids:
+                q = question_for.get(i, "")
+                prefix = f'(answering: "{q}") ' if q else ""
+                texts.append(f"{prefix}{by_id[i].text}")
+            pending.append(
+                (len(slots), sent.text, texts, False, "not supported by anchors")
             )
+            slots.append(None)
 
-    return VerificationReport(verdicts)
+    if pending:
+        with ThreadPoolExecutor(max_workers=min(4, len(pending))) as pool:
+            results = list(
+                pool.map(lambda p: judge(p[1], p[2], p[3]), pending)
+            )
+        for (idx, text, _texts, _bridge, fail_reason), ok in zip(pending, results):
+            slots[idx] = SentenceVerdict(text, ok, "" if ok else fail_reason)
+
+    return VerificationReport([v for v in slots if v is not None])
 
 
 def write_verified_chapter(

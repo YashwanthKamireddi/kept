@@ -104,6 +104,39 @@ def test_regeneration_gives_up_after_max_attempts():
     assert not report.passed  # caller keeps it DRAFT — family never sees it
 
 
+def test_verbatim_sentence_passes_without_judge():
+    def always_false_judge(sentence, texts, bridge):
+        return False
+
+    draft = _draft([
+        SentenceDraft(text="I grew up in Guntur, next to the railway station.",
+                      segment_ids=["seg1"]),
+    ])
+    report = verify_chapter(draft, _segments(), judge=always_false_judge)
+    assert report.passed  # verbatim needs no judge
+
+
+def test_judge_receives_question_context():
+    from katha_core.models import Speaker as Sp
+
+    segs = [
+        TranscriptSegment(id="q1", session_id="c", idx=0, speaker=Sp.BIOGRAPHER,
+                          t_start_ms=0, t_end_ms=1000, text="Who woke up first?"),
+        TranscriptSegment(id="a1", session_id="c", idx=1, speaker=Sp.STORYTELLER,
+                          t_start_ms=1000, t_end_ms=2000, text="My mother, always."),
+    ]
+    seen: list[list[str]] = []
+
+    def spy_judge(sentence, texts, bridge):
+        seen.append(texts)
+        return True
+
+    draft = _draft([SentenceDraft(text="My mother woke first.", segment_ids=["a1"])])
+    report = verify_chapter(draft, segs, judge=spy_judge)
+    assert report.passed
+    assert "Who woke up first?" in seen[0][0]  # elliptical answer judged with its question
+
+
 def test_judge_rejection_blocks_promotion():
     def strict_judge(sentence, texts, bridge):
         return "embellished" not in sentence
