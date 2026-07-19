@@ -46,7 +46,11 @@ def test_unanchored_factual_sentence_fails():
     report = verify_chapter(draft, _segments(), judge=_permissive_judge)
     assert not report.passed
     assert report.failures[0].reason == "no anchors"
-    assert to_chapter(draft, report, "st", 1).status == ChapterStatus.DRAFT
+    chapter = to_chapter(draft, report, "st", 1)
+    assert chapter.status == ChapterStatus.DRAFT
+    assert chapter.verification_notes == [
+        {"text": "I was born in 1943 during the monsoon.", "reason": "no anchors"}
+    ]
 
 
 def test_phantom_anchor_fails_without_calling_judge():
