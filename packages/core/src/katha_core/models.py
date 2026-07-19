@@ -263,6 +263,10 @@ class Chapter(Base):
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
     storyteller_id: Mapped[str] = mapped_column(ForeignKey("storytellers.id"))
+    # The call this chapter was written from (enables regeneration + audits).
+    source_session_id: Mapped[str | None] = mapped_column(
+        ForeignKey("call_sessions.id"), default=None
+    )
     ordinal: Mapped[int] = mapped_column(Integer)
     version: Mapped[int] = mapped_column(Integer, default=1)
     title: Mapped[str] = mapped_column(String(200))

@@ -131,7 +131,9 @@ async def finish_call(
     draft, report = await asyncio.to_thread(
         write_verified_chapter, theme, list(segments), writer, judge
     )
-    chapter = to_chapter(draft, report, storyteller.id, ordinal)
+    chapter = to_chapter(
+        draft, report, storyteller.id, ordinal, source_session_id=session_id
+    )
 
     async with db_session() as s:
         s.add(chapter)

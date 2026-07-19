@@ -226,6 +226,7 @@ def to_chapter(
     storyteller_id: str,
     ordinal: int,
     version: int = 1,
+    source_session_id: str | None = None,
 ) -> Chapter:
     """Materialize a Chapter row; VERIFIED only if the report passed."""
     body = [
@@ -237,6 +238,7 @@ def to_chapter(
     ]
     return Chapter(
         storyteller_id=storyteller_id,
+        source_session_id=source_session_id,
         ordinal=ordinal,
         version=version,
         title=draft.title,
