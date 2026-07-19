@@ -13,10 +13,12 @@ export function VoiceSentence({
   sentence,
   playing,
   onPress,
+  onLongPress,
 }: {
   sentence: Sentence;
   playing: boolean;
   onPress?: () => void;
+  onLongPress?: () => void;
 }) {
   const anchored = sentence.anchors.length > 0;
   return (
@@ -24,6 +26,7 @@ export function VoiceSentence({
       accessibilityRole={anchored ? "button" : undefined}
       accessibilityHint={anchored ? "Plays this sentence in the storyteller's voice" : undefined}
       onPress={anchored ? onPress : undefined}
+      onLongPress={anchored ? onLongPress : undefined}
       suppressHighlighting
       style={[
         type.prose,

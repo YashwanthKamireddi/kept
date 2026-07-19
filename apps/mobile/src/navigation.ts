@@ -1,6 +1,6 @@
 export type RootStackParamList = {
   Home: undefined;
-  Chapter: { chapterId: string };
+  Chapter: { chapterId: string; storytellerName?: string };
   AddStoryteller: undefined;
   Sessions: { storytellerId: string; name: string };
   Transcript: { sessionId: string };

@@ -1,5 +1,6 @@
 import React, { useCallback, useLayoutEffect, useState } from "react";
 import {
+  Animated,
   FlatList,
   Pressable,
   RefreshControl,
@@ -12,9 +13,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
 import { color, font, radius, shadow, space, type } from "../design/tokens";
-import { Entrance, DrawnRule, PressableScale } from "../design/motion";
+import { Entrance, DrawnRule, PressableScale, useBreath } from "../design/motion";
 import { useApp } from "../state";
-import { consentLine } from "../design/copy";
+import { consentLine, strings } from "../design/copy";
 import { Page } from "../design/materials";
 import type { Chapter, Storyteller } from "../api/client";
 
@@ -23,6 +24,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 interface Shelf {
   storyteller: Storyteller;
   chapters: Chapter[];
+  live: boolean;
 }
 
 /**
@@ -41,10 +43,17 @@ export function HomeScreen({ navigation }: Props) {
     try {
       const storytellers = await client.listStorytellers();
       const withChapters = await Promise.all(
-        storytellers.map(async (storyteller) => ({
-          storyteller,
-          chapters: await client.listChapters(storyteller.id),
-        })),
+        storytellers.map(async (storyteller) => {
+          const [chapters, sessions] = await Promise.all([
+            client.listChapters(storyteller.id),
+            client.listSessions(storyteller.id),
+          ]);
+          return {
+            storyteller,
+            chapters,
+            live: sessions.some((s) => s.status === "in_progress"),
+          };
+        }),
       );
       setShelves(withChapters);
     } finally {
@@ -55,6 +64,9 @@ export function HomeScreen({ navigation }: Props) {
   useFocusEffect(
     useCallback(() => {
       void load();
+      // While focused, keep the living covers honest.
+      const poll = setInterval(() => void load(), 30_000);
+      return () => clearInterval(poll);
     }, [load]),
   );
 
@@ -99,7 +111,12 @@ export function HomeScreen({ navigation }: Props) {
         <Entrance order={index}>
           <Album
             shelf={item}
-            onOpenChapter={(chapterId) => navigation.navigate("Chapter", { chapterId })}
+            onOpenChapter={(chapterId) =>
+              navigation.navigate("Chapter", {
+                chapterId,
+                storytellerName: item.storyteller.name,
+              })
+            }
             onOpenSessions={() =>
               navigation.navigate("Sessions", {
                 storytellerId: item.storyteller.id,
@@ -131,16 +148,26 @@ function Album({
   onOpenSessions: () => void;
   onOpenThreads: () => void;
 }) {
-  const { storyteller, chapters } = shelf;
+  const { storyteller, chapters, live } = shelf;
   const visible = chapters.filter((c) => c.status !== "draft");
+  const breath = useBreath(live);
+  const glow = breath.interpolate({ inputRange: [0.55, 1], outputRange: [0.1, 0] });
   return (
     <View style={styles.album}>
       <LinearGradient colors={["#1E2530", color.stage]} style={styles.cover}>
         <View style={styles.spine} />
         <View style={{ flex: 1, gap: space(1) }}>
-          <Text style={styles.coverLabel}>{consentLine(storyteller)}</Text>
+          <Text style={styles.coverLabel}>
+            {live ? strings.inConversation : consentLine(storyteller)}
+          </Text>
           <Text style={type.coverName}>{storyteller.name}</Text>
         </View>
+        {live && (
+          <Animated.View
+            pointerEvents="none"
+            style={[StyleSheet.absoluteFill, { backgroundColor: color.foil, opacity: glow }]}
+          />
+        )}
       </LinearGradient>
 
       <View style={styles.pages}>
