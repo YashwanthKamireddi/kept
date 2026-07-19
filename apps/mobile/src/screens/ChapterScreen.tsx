@@ -3,12 +3,12 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
-import { color, space, type } from "../theme";
-import { Entrance, DrawnRule } from "../components/motion";
+import { color, space, type } from "../design/tokens";
+import { Entrance, DrawnRule } from "../design/motion";
 import { useApp } from "../state";
 import type { Anchor, ChapterDetail } from "../api/client";
-import { VoiceSentence } from "../components/VoiceSentence";
-import { TapeBar } from "../components/TapeBar";
+import { VoiceSentence } from "../design/components/VoiceSentence";
+import { TapeBar } from "../design/components/TapeBar";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Chapter">;
 

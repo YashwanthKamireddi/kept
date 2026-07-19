@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
-import { color, font, space, type } from "../theme";
-import { Entrance, DrawnRule } from "../components/motion";
+import { color, font, space, type } from "../design/tokens";
+import { Entrance, DrawnRule } from "../design/motion";
 import { useApp } from "../state";
 import type { SessionDetail } from "../api/client";
 

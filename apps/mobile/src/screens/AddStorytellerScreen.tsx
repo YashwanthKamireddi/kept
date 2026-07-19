@@ -2,17 +2,18 @@ import React, { useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
-import { color, font, space, type } from "../theme";
-import { Entrance, PressableScale } from "../components/motion";
+import { color, font, space, type } from "../design/tokens";
+import { Entrance, PressableScale } from "../design/motion";
+import { Field } from "../design/components/Field";
+import { Chip } from "../design/components/Chip";
+import { Page } from "../design/materials";
 import { useApp } from "../state";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AddStoryteller">;
@@ -85,8 +86,9 @@ export function AddStorytellerScreen({ navigation }: Props) {
   };
 
   return (
+    <Page>
     <KeyboardAvoidingView
-      style={styles.page}
+      style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -160,81 +162,14 @@ export function AddStorytellerScreen({ navigation }: Props) {
         </Entrance>
       </ScrollView>
     </KeyboardAvoidingView>
+    </Page>
   );
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  placeholder,
-  keyboard,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  keyboard?: "phone-pad";
-}) {
-  return (
-    <View style={{ gap: space(1) }}>
-      <Text style={type.label}>{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={onChange}
-        placeholder={placeholder}
-        placeholderTextColor={color.hairline}
-        keyboardType={keyboard}
-        style={styles.input}
-      />
-    </View>
-  );
-}
-
-function Chip({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      onPress={onPress}
-      style={[styles.chip, selected && styles.chipSelected]}
-    >
-      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
-    </Pressable>
-  );
-}
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: color.paper },
   scroll: { padding: space(6), gap: space(5), paddingBottom: space(12) },
-  input: {
-    borderBottomWidth: 1,
-    borderBottomColor: color.hairline,
-    paddingVertical: space(2),
-    fontFamily: font.body,
-    fontSize: 17,
-    color: color.ink,
-  },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: space(2) },
-  chip: {
-    paddingHorizontal: space(3),
-    paddingVertical: space(2),
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: color.hairline,
-    backgroundColor: color.paper,
-  },
-  chipSelected: { borderColor: color.gold, backgroundColor: color.surface },
-  chipText: { fontFamily: font.bodyMedium, fontSize: 14, color: color.inkSoft },
-  chipTextSelected: { color: color.ink },
   error: { ...type.caption, color: color.ember },
   button: {
     backgroundColor: color.ink,

@@ -5,12 +5,13 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { color, font, radius, shadow, space, type } from "../theme";
-import { Entrance, PressableScale } from "../components/motion";
+import { color, font, radius, shadow, space, type } from "../design/tokens";
+import { Entrance, PressableScale } from "../design/motion";
+import { Field } from "../design/components/Field";
+import { Lamplight } from "../design/materials";
+import { strings } from "../design/copy";
 import { DEFAULT_BASE_URL, useApp } from "../state";
 
 /**
@@ -42,7 +43,7 @@ export function SignInScreen() {
   const ready = email.includes("@") && name.length > 0 && familyName.length > 0;
 
   return (
-    <LinearGradient colors={["#1B212C", color.stage]} style={styles.stage}>
+    <Lamplight>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -55,9 +56,7 @@ export function SignInScreen() {
             <Text style={type.wordmark}>Kept</Text>
           </Entrance>
           <Entrance order={1}>
-            <Text style={styles.thesis}>
-              Every family has a storyteller.{"\n"}Keep their voice.
-            </Text>
+            <Text style={styles.thesis}>{strings.thesis}</Text>
           </Entrance>
 
           <Entrance order={3} style={styles.sheetWrap}>
@@ -82,42 +81,17 @@ export function SignInScreen() {
 
           <Entrance order={4}>
             <Text style={styles.footnote}>
-              Stories are recorded only with the storyteller's spoken blessing.
+              {strings.consentFootnote}
             </Text>
           </Entrance>
         </ScrollView>
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </Lamplight>
   );
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  keyboard,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  keyboard?: "email-address" | "url";
-}) {
-  return (
-    <View style={{ gap: space(1) }}>
-      <Text style={type.label}>{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={onChange}
-        keyboardType={keyboard}
-        autoCapitalize={keyboard ? "none" : "words"}
-        style={styles.input}
-      />
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
-  stage: { flex: 1 },
   scroll: {
     flexGrow: 1,
     justifyContent: "center",
@@ -141,14 +115,6 @@ const styles = StyleSheet.create({
     padding: space(6),
     gap: space(5),
     ...shadow.sheet,
-  },
-  input: {
-    borderBottomWidth: 1,
-    borderBottomColor: color.hairline,
-    paddingVertical: space(2),
-    fontFamily: font.body,
-    fontSize: 17,
-    color: color.ink,
   },
   error: { ...type.caption, color: color.ember },
   button: {

@@ -11,9 +11,11 @@ import { useFocusEffect } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
-import { color, font, radius, shadow, space, type } from "../theme";
-import { Entrance, DrawnRule, PressableScale } from "../components/motion";
+import { color, font, radius, shadow, space, type } from "../design/tokens";
+import { Entrance, DrawnRule, PressableScale } from "../design/motion";
 import { useApp } from "../state";
+import { consentLine } from "../design/copy";
+import { Page } from "../design/materials";
 import type { Chapter, Storyteller } from "../api/client";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
@@ -75,8 +77,9 @@ export function HomeScreen({ navigation }: Props) {
   }, [navigation, signOut]);
 
   return (
+    <Page>
     <FlatList
-      style={styles.page}
+      style={{ flex: 1 }}
       contentContainerStyle={styles.content}
       data={shelves}
       keyExtractor={(s) => s.storyteller.id}
@@ -113,6 +116,7 @@ export function HomeScreen({ navigation }: Props) {
         </Entrance>
       )}
     />
+    </Page>
   );
 }
 
@@ -174,20 +178,8 @@ function Album({
   );
 }
 
-function consentLine(storyteller: Storyteller): string {
-  switch (storyteller.consent) {
-    case "granted":
-      return "Recording with their blessing";
-    case "pending":
-      return "Awaiting their first call";
-    case "declined":
-    case "revoked":
-      return "Paused at their request";
-  }
-}
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: color.paper },
   content: { padding: space(5), gap: space(6), paddingBottom: space(12) },
   empty: { alignItems: "center", gap: space(4), paddingTop: space(20) },
   emptyRule: { width: 56 },

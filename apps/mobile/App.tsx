@@ -17,7 +17,7 @@ import { SessionsScreen } from "./src/screens/SessionsScreen";
 import { TranscriptScreen } from "./src/screens/TranscriptScreen";
 import { FollowUpsScreen } from "./src/screens/FollowUpsScreen";
 import type { RootStackParamList } from "./src/navigation";
-import { color, font } from "./src/theme";
+import { color, font } from "./src/design/tokens";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

@@ -3,9 +3,11 @@ import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
-import { color, font, space, type } from "../theme";
-import { Entrance, PressableScale } from "../components/motion";
+import { color, font, space, type } from "../design/tokens";
+import { Entrance, PressableScale } from "../design/motion";
 import { useApp } from "../state";
+import { sessionStatusLine, sessionSubLine } from "../design/copy";
+import { Page } from "../design/materials";
 import type { Session } from "../api/client";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Sessions">;
@@ -34,8 +36,9 @@ export function SessionsScreen({ route, navigation }: Props) {
   const readable = (s: Session) => ["completed", "dropped"].includes(s.status);
 
   return (
+    <Page>
     <FlatList
-      style={styles.page}
+      style={{ flex: 1 }}
       contentContainerStyle={styles.content}
       data={sessions}
       keyExtractor={(s) => s.id}
@@ -63,56 +66,20 @@ export function SessionsScreen({ route, navigation }: Props) {
             style={styles.row}
           >
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={type.body}>{statusLine(item)}</Text>
-              <Text style={type.caption}>{subLine(item)}</Text>
+              <Text style={type.body}>{sessionStatusLine(item)}</Text>
+              <Text style={type.caption}>{sessionSubLine(item)}</Text>
             </View>
             {readable(item) ? <Text style={styles.go}>→</Text> : null}
           </PressableScale>
         </Entrance>
       )}
     />
+    </Page>
   );
 }
 
-function fmtDate(iso: string | null): string {
-  if (!iso) return "";
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
-
-function statusLine(s: Session): string {
-  switch (s.status) {
-    case "completed":
-      return `${fmtDate(s.started_at)} — a conversation`;
-    case "in_progress":
-      return "Happening right now";
-    case "dropped":
-      return `${fmtDate(s.started_at)} — the line dropped`;
-    case "no_answer":
-      return `${fmtDate(s.scheduled_at)} — no answer`;
-    case "failed":
-      return `${fmtDate(s.scheduled_at)} — couldn't connect`;
-    default:
-      return `Scheduled for ${fmtDate(s.scheduled_at)}`;
-  }
-}
-
-function subLine(s: Session): string {
-  switch (s.status) {
-    case "completed": {
-      const m = Math.max(1, Math.round(s.duration_seconds / 60));
-      return `${m} minute${m === 1 ? "" : "s"} · tap to read`;
-    }
-    case "dropped":
-      return "We'll pick up where they left off";
-    case "no_answer":
-      return "We'll try again at the next scheduled time";
-    default:
-      return "";
-  }
-}
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: color.paper },
   content: { padding: space(5), gap: space(2), paddingBottom: space(12) },
   row: {
     flexDirection: "row",

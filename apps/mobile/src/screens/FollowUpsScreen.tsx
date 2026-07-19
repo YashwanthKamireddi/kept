@@ -3,8 +3,8 @@ import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
-import { color, font, space, type } from "../theme";
-import { Entrance, PressableScale } from "../components/motion";
+import { color, font, space, type } from "../design/tokens";
+import { Entrance, PressableScale } from "../design/motion";
 import { useApp } from "../state";
 import type { FollowUp } from "../api/client";
 
