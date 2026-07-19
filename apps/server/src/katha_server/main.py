@@ -3,13 +3,14 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from katha_core.config import settings
-from katha_core.db import create_all
+
+from .dbsetup import ensure_schema
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if settings().katha_env == "dev":
-        await create_all()
+    # Schema always follows the migration chain — dev and prod alike.
+    await ensure_schema()
     yield
 
 

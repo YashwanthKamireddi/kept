@@ -10,7 +10,7 @@ tapping a gold sentence shows the real "recording hasn't synced" state.
 import argparse
 import asyncio
 
-from katha_core.db import create_all, session as db_session
+from katha_core.db import session as db_session
 from katha_core.models import (
     CallSession,
     Chapter,
@@ -44,7 +44,9 @@ CHAPTER_TITLE = "The Street That Smelled of Bread"
 
 
 async def seed(email: str, create: bool = False) -> None:
-    await create_all()
+    from .dbsetup import ensure_schema  # noqa: PLC0415
+
+    await ensure_schema()
     async with db_session() as s:
         keeper = await s.scalar(select(Keeper).where(Keeper.email == email))
         if keeper is None and create:
