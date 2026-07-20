@@ -3,6 +3,7 @@ import {
   AccessibilityInfo,
   Animated,
   Easing,
+  Platform,
   Pressable,
   type PressableProps,
   type StyleProp,
@@ -12,9 +13,23 @@ import { duration } from "./tokens";
 
 /**
  * The motion language: pages settle, threads draw themselves, objects give
- * under the finger, covers breathe while a story is being told. Every
- * primitive honors reduced motion — stillness is a first-class rendering.
+ * under the finger, covers breathe while a story is being told.
+ *
+ * Web note: useNativeDriver is a native-only optimization — on react-native-web
+ * it's unsupported and makes transforms/opacity glitchy. So every animation
+ * uses the native driver on device and the JS driver (smooth, RAF-based) on
+ * web. Motion is also tuned subtler + snappier on web so it reads like a
+ * polished site, not a phone app straining in a browser. Reduced motion wins
+ * everywhere.
  */
+
+const WEB = Platform.OS === "web";
+const NATIVE = !WEB;
+
+// Per-surface motion tuning: richer on device, crisp on web.
+const RISE = WEB ? 8 : 16;
+const ENTER_MS = WEB ? 360 : duration.entrance;
+const STAGGER_MS = WEB ? 55 : duration.stagger;
 
 let reduceMotion = false;
 AccessibilityInfo.isReduceMotionEnabled?.().then((v) => {
@@ -42,10 +57,10 @@ export function Entrance({
     if (reduceMotion) return;
     Animated.timing(progress, {
       toValue: 1,
-      duration: duration.entrance,
-      delay: order * duration.stagger,
+      duration: ENTER_MS,
+      delay: order * STAGGER_MS,
       easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
+      useNativeDriver: NATIVE,
     }).start();
   }, [order, progress]);
 
@@ -59,7 +74,7 @@ export function Entrance({
             {
               translateY: progress.interpolate({
                 inputRange: [0, 1],
-                outputRange: [16, 0],
+                outputRange: [RISE, 0],
               }),
             },
           ],
@@ -88,9 +103,9 @@ export function DrawnRule({
     Animated.timing(progress, {
       toValue: 1,
       duration: duration.rule,
-      delay: order * duration.stagger,
+      delay: order * STAGGER_MS,
       easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
+      useNativeDriver: NATIVE,
     }).start();
   }, [order, progress]);
 
@@ -118,7 +133,7 @@ export function PressableScale({
       toValue: value,
       speed: 30,
       bounciness: 6,
-      useNativeDriver: true,
+      useNativeDriver: NATIVE,
     }).start();
 
   return (
@@ -154,13 +169,13 @@ export function useBreath(active: boolean, low = 0.55): Animated.Value {
           toValue: low,
           duration: duration.breath,
           easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
+          useNativeDriver: NATIVE,
         }),
         Animated.timing(value, {
           toValue: 1,
           duration: duration.breath,
           easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
+          useNativeDriver: NATIVE,
         }),
       ]),
     );
@@ -171,8 +186,8 @@ export function useBreath(active: boolean, low = 0.55): Animated.Value {
   return value;
 }
 
-/** An envelope-style unfold: content tips forward into view like a letter
- * being opened. Under reduced motion it is a plain crossfade. */
+/** A letter opening. On device it tips forward in 3D; on web (where 3D
+ * rotateX is janky) and under reduced motion it's a clean fade-and-settle. */
 export function Unfold({
   open,
   children,
@@ -184,36 +199,38 @@ export function Unfold({
   style?: StyleProp<ViewStyle>;
   onSettled?: () => void;
 }) {
-  const progress = useRef(new Animated.Value(reduceMotion ? (open ? 1 : 0) : 0)).current;
+  const flat = reduceMotion || WEB;
+  const progress = useRef(new Animated.Value(flat ? (open ? 1 : 0) : 0)).current;
 
   useEffect(() => {
     Animated.timing(progress, {
       toValue: open ? 1 : 0,
-      duration: reduceMotion ? duration.crossfade : duration.unfold,
+      duration: flat ? duration.crossfade : duration.unfold,
       easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
+      useNativeDriver: NATIVE,
     }).start(({ finished }) => {
       if (finished && open) onSettled?.();
     });
-  }, [open, progress, onSettled]);
+  }, [open, progress, flat, onSettled]);
 
-  const rotateX = reduceMotion
-    ? "0deg"
-    : (progress.interpolate({
-        inputRange: [0, 1],
-        outputRange: ["-70deg", "0deg"],
-      }) as unknown as string);
+  const transform = flat
+    ? [
+        {
+          translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }),
+        },
+      ]
+    : [
+        { perspective: 900 },
+        {
+          rotateX: progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: ["-70deg", "0deg"],
+          }) as unknown as string,
+        },
+      ];
 
   return (
-    <Animated.View
-      style={[
-        style,
-        {
-          opacity: progress,
-          transform: [{ perspective: 900 }, { rotateX }],
-        },
-      ]}
-    >
+    <Animated.View style={[style, { opacity: progress, transform }]}>
       {children}
     </Animated.View>
   );

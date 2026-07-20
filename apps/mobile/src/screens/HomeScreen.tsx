@@ -142,6 +142,20 @@ export function HomeScreen({ navigation }: Props) {
           />
         </Entrance>
       )}
+      ListFooterComponent={
+        shelves.length > 0 ? (
+          <Entrance order={shelves.length} style={styles.footerBlock}>
+            <PressableScale
+              accessibilityRole="button"
+              onPress={() => navigation.navigate("AddStoryteller")}
+              style={styles.addAnother}
+            >
+              <Text style={styles.addAnotherText}>＋  Add another storyteller</Text>
+            </PressableScale>
+            <Text style={styles.brandFoot}>Kept</Text>
+          </Entrance>
+        ) : null
+      }
     />
     </Page>
   );
@@ -237,9 +251,35 @@ function Album({
 
 
 const styles = StyleSheet.create({
-  content: { padding: space(5), gap: space(6), paddingBottom: space(12) },
-  empty: { alignItems: "center", gap: space(4), paddingTop: space(20) },
+  // flexGrow + centering: a lone album sits as a calm, centered composition
+  // instead of pinned to the top over a big void; long lists still scroll.
+  content: {
+    padding: space(5),
+    gap: space(6),
+    paddingBottom: space(12),
+    flexGrow: 1,
+    justifyContent: "center",
+  },
+  empty: { alignItems: "center", gap: space(4) },
   emptyRule: { width: 56 },
+  footerBlock: { alignItems: "center", gap: space(6), paddingTop: space(4) },
+  addAnother: {
+    borderWidth: 1,
+    borderColor: color.hairline,
+    borderStyle: "dashed",
+    borderRadius: radius.cover,
+    paddingVertical: space(4),
+    paddingHorizontal: space(6),
+    width: "100%",
+    alignItems: "center",
+  },
+  addAnotherText: { fontFamily: font.bodyMedium, fontSize: 15, color: color.inkSoft },
+  brandFoot: {
+    fontFamily: font.display,
+    fontSize: 20,
+    color: color.hairline,
+    letterSpacing: 1,
+  },
   album: { borderRadius: radius.cover, ...shadow.cover },
   cover: {
     flexDirection: "row",
