@@ -16,6 +16,7 @@ from katha_core.models import (
     CallSession,
     Chapter,
     ConsentStatus,
+    Fact,
     FollowUp,
     SessionStatus,
     Storyteller,
@@ -150,7 +151,40 @@ async def finish_call(
     return chapter
 
 
+async def unprocessed_completed_calls() -> list[str]:
+    """COMPLETED sessions that have not yet been through the pipeline (no facts
+    produced). This is how a finished call gets turned into a chapter without
+    anyone invoking it by hand."""
+    async with db_session() as s:
+        with_facts = select(Fact.session_id).distinct().subquery()
+        rows = await s.scalars(
+            select(CallSession.id).where(
+                CallSession.status == SessionStatus.COMPLETED,
+                CallSession.id.not_in(select(with_facts.c.session_id)),
+            )
+        )
+        return list(rows)
+
+
+async def process_completed_calls(
+    extractor: Extractor = extract, writer=draft_chapter, judge: Judge = llm_judge
+) -> list[str]:
+    """Run finish_call on every unprocessed completed session. Failures are
+    logged and skipped so one bad transcript never stalls the queue."""
+    done: list[str] = []
+    for session_id in await unprocessed_completed_calls():
+        try:
+            await finish_call(session_id, extractor=extractor, writer=writer, judge=judge)
+            done.append(session_id)
+        except Exception:  # noqa: BLE001 — worker must survive one bad session
+            log.exception("post-call processing failed session=%s", session_id)
+    return done
+
+
 async def run_forever(dispatcher: Dispatcher, interval_seconds: int = 60) -> None:
+    """The unattended loop: place due calls, then turn finished calls into
+    chapters. Both halves run every tick."""
     while True:
         await start_due_calls(datetime.now(UTC), dispatcher)
+        await process_completed_calls()
         await asyncio.sleep(interval_seconds)
