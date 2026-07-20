@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { color, space, type } from "../tokens";
 import { Lamplight } from "../materials";
-import { PressableScale, useReduceMotion } from "../motion";
+import { PressableScale, useReduceMotion, NATIVE_DRIVER } from "../motion";
 
 /**
  * The lights go down. While the storyteller speaks, everything disappears
@@ -65,13 +65,13 @@ function Waveform({ playing }: { playing: boolean }) {
             toValue: 1,
             duration: 340 + i * 55,
             easing: Easing.inOut(Easing.sin),
-            useNativeDriver: true,
+            useNativeDriver: NATIVE_DRIVER,
           }),
           Animated.timing(bar, {
             toValue: 0.3,
             duration: 340 + ((BAR_COUNT - i) * 45),
             easing: Easing.inOut(Easing.sin),
-            useNativeDriver: true,
+            useNativeDriver: NATIVE_DRIVER,
           }),
         ]),
       ),

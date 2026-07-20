@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
 import { color, duration, font, radius, shadow, space, type } from "../tokens";
 import { Lamplight } from "../materials";
-import { Unfold, useReduceMotion } from "../motion";
+import { Unfold, useReduceMotion, NATIVE_DRIVER } from "../motion";
 import { play } from "../sound";
 import { haptic } from "../haptics";
 
@@ -38,7 +38,7 @@ export function EnvelopeReveal({
       toValue: 0,
       duration: duration.crossfade,
       delay: 350,
-      useNativeDriver: true,
+      useNativeDriver: NATIVE_DRIVER,
     }).start(({ finished }) => {
       if (finished) onOpened();
     });

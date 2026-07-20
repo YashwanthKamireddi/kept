@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
 import { color, font, space } from "../tokens";
+import { NATIVE_DRIVER } from "../motion";
 
 /**
  * The cassette bar: shown while the storyteller speaks. A gold thread shimmers
@@ -24,8 +25,8 @@ export function TapeBar({
     if (!playing) return;
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: true }),
-        Animated.timing(shimmer, { toValue: 0.35, duration: 900, useNativeDriver: true }),
+        Animated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: NATIVE_DRIVER }),
+        Animated.timing(shimmer, { toValue: 0.35, duration: 900, useNativeDriver: NATIVE_DRIVER }),
       ]),
     );
     loop.start();

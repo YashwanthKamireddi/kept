@@ -26,6 +26,11 @@ import { duration } from "./tokens";
 const WEB = Platform.OS === "web";
 const NATIVE = !WEB;
 
+/** The one place any component decides the Animated driver: native on device,
+ * JS/RAF on web (where the native driver is unsupported and glitchy). Import
+ * this instead of hardcoding `useNativeDriver: true` in local animations. */
+export const NATIVE_DRIVER = NATIVE;
+
 // Per-surface motion tuning: richer on device, crisp on web.
 const RISE = WEB ? 8 : 16;
 const ENTER_MS = WEB ? 360 : duration.entrance;
