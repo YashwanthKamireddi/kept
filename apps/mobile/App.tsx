@@ -1,4 +1,5 @@
 import React from "react";
+import { useWindowDimensions, View } from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
@@ -34,6 +35,40 @@ const theme = {
     border: color.hairline,
   },
 };
+
+/**
+ * Kept is a phone-shaped app. On a wide browser, center it as one intentional
+ * column on the lamplight stage instead of letting every screen sprawl
+ * edge-to-edge. On a real phone (narrow) this is a no-op full-bleed frame.
+ */
+const PHONE_MAX_WIDTH = 460;
+
+function ResponsiveFrame({ children }: { children: React.ReactNode }) {
+  const { width } = useWindowDimensions();
+  const wide = width > PHONE_MAX_WIDTH + 40;
+  return (
+    <View style={{ flex: 1, backgroundColor: color.stage, alignItems: "center" }}>
+      <View
+        style={{
+          flex: 1,
+          width: "100%",
+          maxWidth: wide ? PHONE_MAX_WIDTH : undefined,
+          overflow: "hidden",
+          ...(wide
+            ? {
+                shadowColor: "#000",
+                shadowOpacity: 0.35,
+                shadowRadius: 40,
+                shadowOffset: { width: 0, height: 0 },
+              }
+            : {}),
+        }}
+      >
+        {children}
+      </View>
+    </View>
+  );
+}
 
 function Root() {
   const { client, ready } = useApp();
@@ -95,10 +130,12 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AppStateProvider>
-        <NavigationContainer theme={theme}>
-          <StatusBar style="dark" />
-          <Root />
-        </NavigationContainer>
+        <ResponsiveFrame>
+          <NavigationContainer theme={theme}>
+            <StatusBar style="dark" />
+            <Root />
+          </NavigationContainer>
+        </ResponsiveFrame>
       </AppStateProvider>
     </ErrorBoundary>
   );
