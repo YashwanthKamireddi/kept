@@ -17,6 +17,7 @@ import { SessionsScreen } from "./src/screens/SessionsScreen";
 import { TranscriptScreen } from "./src/screens/TranscriptScreen";
 import { FollowUpsScreen } from "./src/screens/FollowUpsScreen";
 import { StorytellerSettingsScreen } from "./src/screens/StorytellerSettingsScreen";
+import { ErrorBoundary } from "./src/design/components/ErrorBoundary";
 import type { RootStackParamList } from "./src/navigation";
 import { color, font } from "./src/design/tokens";
 
@@ -92,11 +93,13 @@ export default function App() {
   });
   if (!fontsLoaded) return null;
   return (
-    <AppStateProvider>
-      <NavigationContainer theme={theme}>
-        <StatusBar style="dark" />
-        <Root />
-      </NavigationContainer>
-    </AppStateProvider>
+    <ErrorBoundary>
+      <AppStateProvider>
+        <NavigationContainer theme={theme}>
+          <StatusBar style="dark" />
+          <Root />
+        </NavigationContainer>
+      </AppStateProvider>
+    </ErrorBoundary>
   );
 }
