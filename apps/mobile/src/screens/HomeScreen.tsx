@@ -76,12 +76,17 @@ export function HomeScreen({ navigation }: Props) {
         <Pressable
           accessibilityRole="button"
           onPress={() => navigation.navigate("AddStoryteller")}
+          style={styles.headerBtn}
         >
           <Text style={styles.addButton}>Add</Text>
         </Pressable>
       ),
       headerLeft: () => (
-        <Pressable accessibilityRole="button" onPress={() => void signOut()}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => void signOut()}
+          style={styles.headerBtn}
+        >
           <Text style={styles.signOut}>Sign out</Text>
         </Pressable>
       ),
@@ -156,8 +161,16 @@ function Album({
   onOpenSettings: () => void;
 }) {
   const { storyteller, chapters, live } = shelf;
-  const visible = chapters.filter((c) => c.status !== "draft");
-  const checking = chapters.some((c) => c.status === "draft");
+  // Chapters arrive as every version; reason about the latest version per
+  // ordinal so a superseded draft doesn't linger as "being checked".
+  const latestByOrdinal = new Map<number, Chapter>();
+  for (const c of chapters) {
+    const seen = latestByOrdinal.get(c.ordinal);
+    if (!seen || c.version > seen.version) latestByOrdinal.set(c.ordinal, c);
+  }
+  const latest = [...latestByOrdinal.values()].sort((a, b) => a.ordinal - b.ordinal);
+  const visible = latest.filter((c) => c.status !== "draft");
+  const checking = latest.some((c) => c.status === "draft");
   const breath = useBreath(live);
   const glow = breath.interpolate({ inputRange: [0.55, 1], outputRange: [0.1, 0] });
   return (
@@ -262,6 +275,7 @@ const styles = StyleSheet.create({
   },
   chapterOrdinal: { fontFamily: font.displaySoft, fontSize: 16, color: color.gold },
   chapterGo: { fontFamily: font.body, fontSize: 16, color: color.hairline },
+  headerBtn: { paddingHorizontal: space(4), paddingVertical: space(2) },
   addButton: { fontFamily: font.bodyBold, fontSize: 16, color: color.gold },
   footer: {
     flexDirection: "row",
