@@ -26,20 +26,46 @@ export function fmtDate(iso: string | null): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+// Human language names for the tags the app offers (BCP-47 → endonym-ish).
+// Falls back to the raw tag so an unknown language never shows blank.
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English",
+  es: "Spanish",
+  pt: "Portuguese",
+  fr: "French",
+  ar: "Arabic",
+  zh: "Chinese",
+  vi: "Vietnamese",
+  "hi-IN": "Hindi",
+  "te-IN": "Telugu",
+  "ta-IN": "Tamil",
+};
+
+export function languageName(tag: string): string {
+  return LANGUAGE_NAMES[tag] ?? LANGUAGE_NAMES[tag.split("-")[0]] ?? tag;
+}
+
 export function sessionStatusLine(s: Session): string {
+  // A date prefix only when we actually have one — no dangling em-dash.
+  const withDate = (iso: string | null, tail: string, bare: string) => {
+    const d = fmtDate(iso);
+    return d ? `${d} — ${tail}` : bare;
+  };
   switch (s.status) {
     case "completed":
-      return `${fmtDate(s.started_at)} — a conversation`;
+      return withDate(s.started_at, "a conversation", "A conversation");
     case "in_progress":
       return "Happening right now";
     case "dropped":
-      return `${fmtDate(s.started_at)} — the line dropped`;
+      return withDate(s.started_at, "the line dropped", "The line dropped");
     case "no_answer":
-      return `${fmtDate(s.scheduled_at)} — no answer`;
+      return withDate(s.scheduled_at, "no answer", "No answer");
     case "failed":
-      return `${fmtDate(s.scheduled_at)} — couldn't connect`;
-    default:
-      return `Scheduled for ${fmtDate(s.scheduled_at)}`;
+      return withDate(s.scheduled_at, "couldn't connect", "Couldn't connect");
+    default: {
+      const d = fmtDate(s.scheduled_at);
+      return d ? `Scheduled for ${d}` : "Scheduled";
+    }
   }
 }
 

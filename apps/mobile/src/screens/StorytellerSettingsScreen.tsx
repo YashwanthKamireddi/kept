@@ -7,6 +7,7 @@ import { color, font, space, type } from "../design/tokens";
 import { Entrance, PressableScale } from "../design/motion";
 import { Page } from "../design/materials";
 import { haptic } from "../design/haptics";
+import { languageName } from "../design/copy";
 import { useApp } from "../state";
 import type { ConsentStatus, Storyteller } from "../api/client";
 
@@ -132,7 +133,7 @@ export function StorytellerSettingsScreen({ route, navigation }: Props) {
         <Entrance order={2} style={styles.block}>
           <Text style={type.label}>Calls</Text>
           <Text style={[type.body, { color: color.inkSoft }]}>
-            Every {st.cadence_days} days, in {st.language}.
+            Every {st.cadence_days} days, in {languageName(st.language)}.
           </Text>
         </Entrance>
 
