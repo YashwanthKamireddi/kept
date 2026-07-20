@@ -33,3 +33,10 @@ app.include_router(router)
 @app.get("/health")
 async def health() -> dict:
     return {"ok": True, "env": settings().katha_env}
+
+
+@app.get("/health/readiness")
+async def readiness() -> dict:
+    from .readiness import capabilities  # noqa: PLC0415
+
+    return capabilities()
