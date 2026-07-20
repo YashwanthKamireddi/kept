@@ -11,6 +11,8 @@ export interface Storyteller {
   timezone: string;
   consent: ConsentStatus;
   life_brief_version: number;
+  next_call_at: string | null;
+  cadence_days: number;
   created_at: string;
 }
 
@@ -133,6 +135,17 @@ export class KathaClient {
     next_call_at?: string; // ISO datetime of the first call
     cadence_days?: number;
   }) => this.request<Storyteller>("POST", "/storytellers", input);
+
+  getStoryteller = (storytellerId: string) =>
+    this.request<Storyteller>("GET", `/storytellers/${storytellerId}`);
+
+  setConsent = (storytellerId: string, consent: ConsentStatus) =>
+    this.request<Storyteller>("PATCH", `/storytellers/${storytellerId}/consent`, {
+      consent,
+    });
+
+  eraseStoryteller = (storytellerId: string) =>
+    this.request<{ erased: boolean }>("DELETE", `/storytellers/${storytellerId}`);
 
   listSessions = (storytellerId: string) =>
     this.request<Session[]>("GET", `/storytellers/${storytellerId}/sessions`);

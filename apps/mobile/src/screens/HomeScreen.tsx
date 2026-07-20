@@ -129,6 +129,11 @@ export function HomeScreen({ navigation }: Props) {
                 name: item.storyteller.name,
               })
             }
+            onOpenSettings={() =>
+              navigation.navigate("StorytellerSettings", {
+                storytellerId: item.storyteller.id,
+              })
+            }
           />
         </Entrance>
       )}
@@ -142,11 +147,13 @@ function Album({
   onOpenChapter,
   onOpenSessions,
   onOpenThreads,
+  onOpenSettings,
 }: {
   shelf: Shelf;
   onOpenChapter: (chapterId: string) => void;
   onOpenSessions: () => void;
   onOpenThreads: () => void;
+  onOpenSettings: () => void;
 }) {
   const { storyteller, chapters, live } = shelf;
   const visible = chapters.filter((c) => c.status !== "draft");
@@ -204,6 +211,10 @@ function Album({
           <Text style={styles.footerDot}>·</Text>
           <PressableScale accessibilityRole="button" onPress={onOpenThreads}>
             <Text style={styles.footerLink}>Open threads</Text>
+          </PressableScale>
+          <Text style={styles.footerDot}>·</Text>
+          <PressableScale accessibilityRole="button" onPress={onOpenSettings}>
+            <Text style={styles.footerLink}>Manage</Text>
           </PressableScale>
         </View>
       </View>

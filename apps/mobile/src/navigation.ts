@@ -5,4 +5,5 @@ export type RootStackParamList = {
   Sessions: { storytellerId: string; name: string };
   Transcript: { sessionId: string };
   FollowUps: { storytellerId: string; name: string };
+  StorytellerSettings: { storytellerId: string };
 };

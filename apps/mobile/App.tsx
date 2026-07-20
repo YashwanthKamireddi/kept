@@ -16,6 +16,7 @@ import { AddStorytellerScreen } from "./src/screens/AddStorytellerScreen";
 import { SessionsScreen } from "./src/screens/SessionsScreen";
 import { TranscriptScreen } from "./src/screens/TranscriptScreen";
 import { FollowUpsScreen } from "./src/screens/FollowUpsScreen";
+import { StorytellerSettingsScreen } from "./src/screens/StorytellerSettingsScreen";
 import type { RootStackParamList } from "./src/navigation";
 import { color, font } from "./src/design/tokens";
 
@@ -71,6 +72,11 @@ function Root() {
         name="FollowUps"
         component={FollowUpsScreen}
         options={{ title: "Open threads" }}
+      />
+      <Stack.Screen
+        name="StorytellerSettings"
+        component={StorytellerSettingsScreen}
+        options={{ title: "Manage" }}
       />
     </Stack.Navigator>
   );
