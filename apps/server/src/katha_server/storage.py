@@ -40,6 +40,10 @@ def presigned_audio_url(audio_key: str) -> str:
     )
 
 
+def delete_audio(audio_key: str) -> None:
+    _client().delete_object(Bucket=settings().r2_bucket, Key=audio_key)
+
+
 def reset() -> None:
     """Tests re-point credentials."""
     _client.cache_clear()

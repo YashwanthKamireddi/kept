@@ -96,6 +96,24 @@ async def get_storyteller(storyteller_id: str, db: Db, keeper: CurrentKeeper) ->
     return await _owned_storyteller(db, keeper, storyteller_id)
 
 
+@router.delete("/storytellers/{storyteller_id}", tags=["storytellers"])
+async def erase(storyteller_id: str, db: Db, keeper: CurrentKeeper) -> dict:
+    """Right to erasure: permanently delete a storyteller and all derived
+    data (sessions, transcripts, facts, chapters, follow-ups), plus their
+    call recordings from object storage. Irreversible."""
+    from .. import erasure, storage  # noqa: PLC0415
+
+    st = await _owned_storyteller(db, keeper, storyteller_id)
+    result = await erasure.erase_storyteller(db, st)
+    if storage.configured():
+        for key in result["audio_keys"]:
+            try:
+                storage.delete_audio(key)
+            except Exception:  # noqa: BLE001 — best-effort; DB record already gone
+                pass
+    return {"erased": True, "deleted": result["deleted"]}
+
+
 @router.patch(
     "/storytellers/{storyteller_id}/consent",
     response_model=schemas.StorytellerOut,
