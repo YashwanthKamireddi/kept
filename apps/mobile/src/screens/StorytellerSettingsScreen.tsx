@@ -6,6 +6,7 @@ import type { RootStackParamList } from "../navigation";
 import { color, font, space, type } from "../design/tokens";
 import { Entrance, PressableScale } from "../design/motion";
 import { Page } from "../design/materials";
+import { Loading } from "../design/components/Loading";
 import { haptic } from "../design/haptics";
 import { languageName } from "../design/copy";
 import { useApp } from "../state";
@@ -98,13 +99,7 @@ export function StorytellerSettingsScreen({ route, navigation }: Props) {
     );
   };
 
-  if (!st) {
-    return (
-      <Page style={styles.center}>
-        <Text style={type.caption}>Loading…</Text>
-      </Page>
-    );
-  }
+  if (!st) return <Loading label="Opening…" />;
 
   const action = consentAction(st.consent);
 
@@ -158,7 +153,6 @@ export function StorytellerSettingsScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  center: { alignItems: "center", justifyContent: "center" },
   scroll: { padding: space(6), gap: space(7), paddingBottom: space(12) },
   block: { gap: space(2) },
   secondary: {

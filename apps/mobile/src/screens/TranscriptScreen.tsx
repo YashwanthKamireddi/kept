@@ -5,6 +5,7 @@ import type { RootStackParamList } from "../navigation";
 import { color, font, space, type } from "../design/tokens";
 import { Entrance, DrawnRule } from "../design/motion";
 import { Page } from "../design/materials";
+import { Loading } from "../design/components/Loading";
 import { useApp } from "../state";
 import type { SessionDetail } from "../api/client";
 
@@ -24,13 +25,7 @@ export function TranscriptScreen({ route }: Props) {
     void client.getSession(route.params.sessionId).then(setSession);
   }, [client, route.params.sessionId]);
 
-  if (!session) {
-    return (
-      <Page style={styles.center}>
-        <Text style={type.caption}>Opening the conversation…</Text>
-      </Page>
-    );
-  }
+  if (!session) return <Loading label="Opening the conversation…" />;
 
   return (
     <Page>
@@ -56,7 +51,6 @@ export function TranscriptScreen({ route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  center: { alignItems: "center", justifyContent: "center" },
   content: { padding: space(6), paddingBottom: space(12), gap: space(4) },
   storyteller: {
     borderLeftWidth: 2,

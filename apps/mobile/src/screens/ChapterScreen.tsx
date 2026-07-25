@@ -13,6 +13,7 @@ import { useApp } from "../state";
 import type { Anchor, ChapterDetail } from "../api/client";
 import { VoiceSentence } from "../design/components/VoiceSentence";
 import { TapeBar } from "../design/components/TapeBar";
+import { Loading } from "../design/components/Loading";
 import { ListeningRoom } from "../design/components/ListeningRoom";
 import { KeepsakeCard } from "../design/components/KeepsakeCard";
 
@@ -86,13 +87,7 @@ export function ChapterScreen({ route }: Props) {
     }
   }, [status, span, player]);
 
-  if (!chapter) {
-    return (
-      <Page style={styles.center}>
-        <Text style={type.caption}>Opening the chapter…</Text>
-      </Page>
-    );
-  }
+  if (!chapter) return <Loading label="Opening the chapter…" />;
 
   return (
     <Page>
@@ -171,7 +166,6 @@ export function ChapterScreen({ route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  center: { alignItems: "center", justifyContent: "center" },
   scroll: { paddingHorizontal: space(6), paddingTop: space(6), paddingBottom: space(12) },
   rule: { marginVertical: space(5) },
   paragraph: { marginBottom: space(5) },
