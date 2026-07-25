@@ -30,6 +30,7 @@ from katha_core.db import create_all
 from katha_core.models import Speaker, Storyteller
 from livekit import agents
 from livekit.agents import Agent, AgentSession, JobContext, WorkerOptions
+from livekit.agents import llm as lk_llm
 from livekit.plugins import sarvam, silero
 
 from .calls import (
@@ -44,6 +45,20 @@ from .calls import (
 from .interviewer import complete_turn_cli, stream_turn
 
 AGENT_NAME = "katha"
+
+
+class _BrainPlaceholder(lk_llm.LLM):
+    """A non-None LLM so AgentSession routes generation into our llm_node.
+
+    This livekit-agents version skips ALL replies when session.llm is None
+    (agent_activity: `elif self.llm is None: return`) and only reaches the
+    agent's llm_node when an LLM is set. Generation actually runs through
+    KathaAgent.llm_node (see generation.py `node(chat_ctx, ...)`), so this
+    object's chat() is never called — it exists purely to pass that guard and
+    to let session.generate_reply() work for the opening greeting."""
+
+    def chat(self, *, chat_ctx, tools=None, **kwargs):  # noqa: ANN001, ANN201
+        raise RuntimeError("KathaAgent.llm_node handles generation; chat() is unused")
 
 
 def preflight() -> list[str]:
@@ -126,6 +141,7 @@ async def _run_test_agent(ctx: JobContext) -> None:
         life_brief="",
     )
     session = AgentSession(
+        llm=_BrainPlaceholder(),
         stt=sarvam.STT(language=storyteller.language, api_key=settings().sarvam_api_key),
         tts=sarvam.TTS(
             target_language_code=storyteller.language,
@@ -167,6 +183,7 @@ async def entrypoint(ctx: JobContext) -> None:
         return int((time.monotonic() - t0) * 1000)
 
     session = AgentSession(
+        llm=_BrainPlaceholder(),
         stt=sarvam.STT(
             language=storyteller.language,
             api_key=settings().sarvam_api_key,
