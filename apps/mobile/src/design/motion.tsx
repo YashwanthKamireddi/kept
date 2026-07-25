@@ -207,16 +207,28 @@ export function Unfold({
   const flat = reduceMotion || WEB;
   const progress = useRef(new Animated.Value(flat ? (open ? 1 : 0) : 0)).current;
 
+  // Read the latest callback through a ref instead of the effect's dependency
+  // array. A parent re-rendering for unrelated reasons (e.g. a sibling audio
+  // hook ticking) recreates onSettled every time; if that identity were a
+  // dependency, every such re-render would restart this animation from
+  // scratch and the "finished" callback would never fire — the reveal would
+  // hang forever. Only `open` flipping should (re)start the animation.
+  const onSettledRef = useRef(onSettled);
+  onSettledRef.current = onSettled;
+  const startedFor = useRef<boolean | null>(null);
+
   useEffect(() => {
+    if (startedFor.current === open) return;
+    startedFor.current = open;
     Animated.timing(progress, {
       toValue: open ? 1 : 0,
       duration: flat ? duration.crossfade : duration.unfold,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: NATIVE,
     }).start(({ finished }) => {
-      if (finished && open) onSettled?.();
+      if (finished && open) onSettledRef.current?.();
     });
-  }, [open, progress, flat, onSettled]);
+  }, [open, progress, flat]);
 
   const transform = flat
     ? [

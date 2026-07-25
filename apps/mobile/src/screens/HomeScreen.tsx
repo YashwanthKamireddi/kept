@@ -15,7 +15,7 @@ import type { RootStackParamList } from "../navigation";
 import { color, font, radius, shadow, space, type } from "../design/tokens";
 import { Entrance, DrawnRule, PressableScale, useBreath } from "../design/motion";
 import { useApp } from "../state";
-import { consentLine, strings } from "../design/copy";
+import { consentLine, countLine, greeting, nextCallLine, strings, todayLine } from "../design/copy";
 import { Page } from "../design/materials";
 import type { Chapter, Storyteller } from "../api/client";
 
@@ -24,6 +24,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 interface Shelf {
   storyteller: Storyteller;
   chapters: Chapter[];
+  sessionCount: number;
   live: boolean;
 }
 
@@ -51,6 +52,7 @@ export function HomeScreen({ navigation }: Props) {
           return {
             storyteller,
             chapters,
+            sessionCount: sessions.length,
             live: sessions.some((s) => s.status === "in_progress"),
           };
         }),
@@ -101,11 +103,17 @@ export function HomeScreen({ navigation }: Props) {
       data={shelves}
       keyExtractor={(s) => s.storyteller.id}
       refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
+      ListHeaderComponent={
+        <Entrance order={0} style={styles.greeting}>
+          <Text style={type.sectionTitle}>{greeting()}</Text>
+          <Text style={[type.caption, { color: color.inkSoft }]}>{todayLine()}</Text>
+        </Entrance>
+      }
       ListEmptyComponent={
         !loading ? (
-          <Entrance order={0} style={styles.empty}>
+          <Entrance order={1} style={styles.empty}>
             <Text style={type.sectionTitle}>The album is waiting</Text>
-            <DrawnRule color={color.gold} order={1} style={styles.emptyRule} />
+            <DrawnRule color={color.gold} order={2} style={styles.emptyRule} />
             <Text style={[type.body, { color: color.inkSoft, textAlign: "center" }]}>
               Add your family's storyteller and we'll call to hear their first story.
             </Text>
@@ -113,7 +121,7 @@ export function HomeScreen({ navigation }: Props) {
         ) : null
       }
       renderItem={({ item, index }) => (
-        <Entrance order={index}>
+        <Entrance order={index + 1}>
           <Album
             shelf={item}
             onOpenChapter={(chapterId) =>
@@ -144,7 +152,7 @@ export function HomeScreen({ navigation }: Props) {
       )}
       ListFooterComponent={
         shelves.length > 0 ? (
-          <Entrance order={shelves.length} style={styles.footerBlock}>
+          <Entrance order={shelves.length + 1} style={styles.footerBlock}>
             <PressableScale
               accessibilityRole="button"
               onPress={() => navigation.navigate("AddStoryteller")}
@@ -174,7 +182,7 @@ function Album({
   onOpenThreads: () => void;
   onOpenSettings: () => void;
 }) {
-  const { storyteller, chapters, live } = shelf;
+  const { storyteller, chapters, sessionCount, live } = shelf;
   // Chapters arrive as every version; reason about the latest version per
   // ordinal so a superseded draft doesn't linger as "being checked".
   const latestByOrdinal = new Map<number, Chapter>();
@@ -196,6 +204,9 @@ function Album({
             {live ? strings.inConversation : consentLine(storyteller)}
           </Text>
           <Text style={type.coverName}>{storyteller.name}</Text>
+          {!live && storyteller.consent === "granted" && nextCallLine(storyteller.next_call_at) && (
+            <Text style={styles.nextCall}>{nextCallLine(storyteller.next_call_at)}</Text>
+          )}
         </View>
         {live && (
           <Animated.View
@@ -231,6 +242,9 @@ function Album({
             A new chapter is being checked for faithfulness…
           </Text>
         )}
+        {visible.length > 0 && (
+          <Text style={styles.stats}>{countLine(visible.length, sessionCount)}</Text>
+        )}
         <View style={styles.footer}>
           <PressableScale accessibilityRole="button" onPress={onOpenSessions}>
             <Text style={styles.footerLink}>Calls</Text>
@@ -251,16 +265,16 @@ function Album({
 
 
 const styles = StyleSheet.create({
-  // flexGrow + centering: a lone album sits as a calm, centered composition
-  // instead of pinned to the top over a big void; long lists still scroll.
+  // Top-anchored, like any real app's home screen — a greeting gives the
+  // page a reason to exist even with one storyteller, instead of a lone
+  // card floating in a centered void.
   content: {
     padding: space(5),
     gap: space(6),
     paddingBottom: space(12),
-    flexGrow: 1,
-    justifyContent: "center",
   },
-  empty: { alignItems: "center", gap: space(4) },
+  greeting: { gap: space(1), paddingBottom: space(2) },
+  empty: { alignItems: "center", gap: space(4), paddingTop: space(10) },
   emptyRule: { width: 56 },
   footerBlock: { alignItems: "center", gap: space(6), paddingTop: space(4) },
   addAnother: {
@@ -296,6 +310,19 @@ const styles = StyleSheet.create({
     letterSpacing: 1.6,
     textTransform: "uppercase",
     color: color.stageText,
+  },
+  nextCall: {
+    fontFamily: font.body,
+    fontSize: 13,
+    color: color.foil,
+    opacity: 0.75,
+    marginTop: space(1),
+  },
+  stats: {
+    fontFamily: font.body,
+    fontSize: 13,
+    color: color.inkSoft,
+    paddingTop: space(2),
   },
   pages: {
     backgroundColor: color.paper,

@@ -26,6 +26,39 @@ export function fmtDate(iso: string | null): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+// A real-clock greeting for the top of Home — the one place the app opens
+// with, so it should feel present rather than static. Not decorative copy:
+// it's computed from the actual time, same as any phone's lock screen.
+export function greeting(now: Date = new Date()): string {
+  const h = now.getHours();
+  if (h < 5) return "Good night";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+export function todayLine(now: Date = new Date()): string {
+  return now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+}
+
+// The real stat line under an album's chapters — no decoration, just counts
+// the family can act on.
+export function countLine(chapters: number, conversations: number): string {
+  const c = `${chapters} chapter${chapters === 1 ? "" : "s"}`;
+  const s = `${conversations} conversation${conversations === 1 ? "" : "s"}`;
+  return `${c} · ${s}`;
+}
+
+export function nextCallLine(nextCallAt: string | null): string | null {
+  if (!nextCallAt) return null;
+  const d = new Date(nextCallAt);
+  if (Number.isNaN(d.getTime())) return null;
+  const days = Math.round((d.getTime() - Date.now()) / 86_400_000);
+  if (days <= 0) return "Calling today";
+  if (days === 1) return "Calling tomorrow";
+  return `Next call ${fmtDate(nextCallAt)}`;
+}
+
 // Human language names for the tags the app offers (BCP-47 → endonym-ish).
 // Falls back to the raw tag so an unknown language never shows blank.
 const LANGUAGE_NAMES: Record<string, string> = {

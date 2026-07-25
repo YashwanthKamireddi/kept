@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
 import { color, duration, font, radius, shadow, space, type } from "../tokens";
 import { Lamplight } from "../materials";
@@ -7,9 +7,11 @@ import { play } from "../sound";
 import { haptic } from "../haptics";
 
 /**
- * A chapter arrives as a letter: a paper envelope under lamplight, a gold
- * seal, then it unfolds into the reader. The whole ceremony is ~1.6s and
- * collapses to a quick crossfade under reduced motion.
+ * A chapter arrives as a letter: a paper envelope under lamplight with a
+ * gold seal, then it crossfades into the reader. The card is on screen from
+ * the very first frame — no blank hold before it — and the handoff to the
+ * reader is driven by a plain timer, not an Animated completion callback, so
+ * it can never hang waiting on one.
  */
 export function EnvelopeReveal({
   ordinal,
@@ -21,33 +23,40 @@ export function EnvelopeReveal({
   onOpened: () => void;
 }) {
   const reduce = useReduceMotion();
-  const [open, setOpen] = useState(false);
   const fade = useRef(new Animated.Value(1)).current;
+  const openedRef = useRef(false);
+
+  const finish = () => {
+    if (openedRef.current) return;
+    openedRef.current = true;
+    onOpened();
+  };
 
   useEffect(() => {
-    const hold = setTimeout(() => {
-      play("seal_open");
-      haptic.sealOpen();
-      setOpen(true);
-    }, reduce ? 150 : 550);
-    return () => clearTimeout(hold);
+    play("seal_open");
+    haptic.sealOpen();
+    const settle = setTimeout(() => {
+      Animated.timing(fade, {
+        toValue: 0,
+        duration: duration.crossfade,
+        useNativeDriver: NATIVE_DRIVER,
+      }).start(({ finished }) => {
+        if (finished) finish();
+      });
+    }, reduce ? 150 : 650);
+    // Belt and suspenders: whatever happens above, never leave the reader
+    // stuck behind this card for more than a couple seconds.
+    const safety = setTimeout(finish, 2400);
+    return () => {
+      clearTimeout(settle);
+      clearTimeout(safety);
+    };
   }, [reduce]);
-
-  const settled = () => {
-    Animated.timing(fade, {
-      toValue: 0,
-      duration: duration.crossfade,
-      delay: 350,
-      useNativeDriver: NATIVE_DRIVER,
-    }).start(({ finished }) => {
-      if (finished) onOpened();
-    });
-  };
 
   return (
     <Animated.View style={[StyleSheet.absoluteFill, { opacity: fade, zIndex: 10 }]}>
       <Lamplight style={styles.center}>
-        <Unfold open={open} onSettled={settled} style={styles.envelope}>
+        <Unfold open style={styles.envelope}>
           <View style={styles.flap} />
           <View style={styles.seal}>
             <Text style={styles.sealMark}>K</Text>
