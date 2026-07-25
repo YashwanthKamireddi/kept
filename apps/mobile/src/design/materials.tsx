@@ -26,7 +26,26 @@ export function PaperGrain() {
   );
 }
 
-/** A page-scene wrapper: paper + grain. */
+/** A warm sepia vignette at the paper's top and bottom edges — painted behind
+ * the content so it deepens the paper without dimming the text. */
+function PaperVignette() {
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <LinearGradient
+        colors={[material.paperVignette, "transparent"]}
+        locations={[0, 0.16]}
+        style={StyleSheet.absoluteFill}
+      />
+      <LinearGradient
+        colors={["transparent", material.paperVignette]}
+        locations={[0.84, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+    </View>
+  );
+}
+
+/** A page-scene wrapper: paper, a soft vignette behind, grain on top. */
 export function Page({
   children,
   style,
@@ -36,13 +55,15 @@ export function Page({
 }) {
   return (
     <View style={[{ flex: 1, backgroundColor: color.paper }, style]}>
+      <PaperVignette />
       {children}
       <PaperGrain />
     </View>
   );
 }
 
-/** A cover-scene wrapper: lamplight gradient falling onto the stage. */
+/** A cover-scene wrapper: a warm lamp settling from above onto ink that
+ * deepens toward the foot of the stage. */
 export function Lamplight({
   children,
   style,
@@ -51,8 +72,18 @@ export function Lamplight({
   style?: StyleProp<ViewStyle>;
 }) {
   return (
-    <LinearGradient colors={[material.lamplightTop, color.stage]} style={[{ flex: 1 }, style]}>
+    <View style={[{ flex: 1, backgroundColor: color.stage }, style]}>
+      <LinearGradient
+        colors={[material.lamplightTop, color.stage, material.stageDeep]}
+        locations={[0, 0.55, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      <LinearGradient
+        colors={[material.lamplightGlow, "transparent"]}
+        locations={[0, 0.45]}
+        style={StyleSheet.absoluteFill}
+      />
       {children}
-    </LinearGradient>
+    </View>
   );
 }

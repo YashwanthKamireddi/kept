@@ -138,10 +138,13 @@ export const duration = {
   crossfade: 250,
 } as const;
 
-/** Material strengths. */
+/** Material strengths — what makes the surfaces feel physical. */
 export const material = {
-  grainOpacity: 0.05,
+  grainOpacity: 0.06, // paper tooth
   lamplightTop: "#1B212C",
+  lamplightGlow: "rgba(201,162,75,0.06)", // a warm lamp settling from above
+  stageDeep: "#0E1218", // the ink deepens toward the foot of the cover scene
+  paperVignette: "rgba(58,42,18,0.05)", // warm sepia at the paper's edges
   vignette: "rgba(0,0,0,0.32)",
 } as const;
 
