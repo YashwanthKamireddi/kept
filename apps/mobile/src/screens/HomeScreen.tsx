@@ -198,6 +198,10 @@ function Album({
   return (
     <View style={styles.album}>
       <LinearGradient colors={["#1E2530", color.stage]} style={styles.cover}>
+        {/* Their initial, embossed in foil like a monogrammed journal. */}
+        <Text style={styles.monogram} pointerEvents="none">
+          {storyteller.name.trim().charAt(0).toUpperCase()}
+        </Text>
         <View style={styles.spine} />
         <View style={{ flex: 1, gap: space(1) }}>
           <Text style={styles.coverLabel}>
@@ -304,8 +308,22 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius.cover,
     padding: space(5),
     paddingVertical: space(6),
+    overflow: "hidden",
   },
   spine: { width: 3, borderRadius: 2, backgroundColor: color.foil, opacity: 0.9 },
+  monogram: {
+    position: "absolute",
+    right: space(4),
+    top: space(2),
+    fontFamily: font.wordmark,
+    fontSize: 96,
+    lineHeight: 104,
+    color: color.foil,
+    opacity: 0.1,
+    textShadowColor: "rgba(0,0,0,0.4)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
   coverLabel: {
     fontFamily: font.bodyMedium,
     fontSize: 11,
