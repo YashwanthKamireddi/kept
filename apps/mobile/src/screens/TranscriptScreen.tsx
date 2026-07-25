@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
 import { color, font, space, type } from "../design/tokens";
 import { Entrance, DrawnRule } from "../design/motion";
+import { Page } from "../design/materials";
 import { useApp } from "../state";
 import type { SessionDetail } from "../api/client";
 
@@ -25,35 +26,36 @@ export function TranscriptScreen({ route }: Props) {
 
   if (!session) {
     return (
-      <View style={[styles.page, styles.center]}>
+      <Page style={styles.center}>
         <Text style={type.caption}>Opening the conversation…</Text>
-      </View>
+      </Page>
     );
   }
 
   return (
-    <ScrollView style={styles.page} contentContainerStyle={styles.content}>
-      <Entrance order={0}>
-        <Text style={[type.label, { color: color.gold }]}>The conversation</Text>
-      </Entrance>
-      <DrawnRule color={color.hairline} order={1} style={{ marginVertical: space(4) }} />
-      {session.segments.map((seg, i) => (
-        <Entrance key={seg.id} order={Math.min(i + 2, 6)}>
-          {seg.speaker === "storyteller" ? (
-            <View style={styles.storyteller}>
-              <Text style={type.prose}>{seg.text}</Text>
-            </View>
-          ) : (
-            <Text style={styles.biographer}>{seg.text}</Text>
-          )}
+    <Page>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+        <Entrance order={0}>
+          <Text style={[type.label, { color: color.gold }]}>The conversation</Text>
         </Entrance>
-      ))}
-    </ScrollView>
+        <DrawnRule color={color.hairline} order={1} style={{ marginVertical: space(4) }} />
+        {session.segments.map((seg, i) => (
+          <Entrance key={seg.id} order={Math.min(i + 2, 6)}>
+            {seg.speaker === "storyteller" ? (
+              <View style={styles.storyteller}>
+                <Text style={type.prose}>{seg.text}</Text>
+              </View>
+            ) : (
+              <Text style={styles.biographer}>{seg.text}</Text>
+            )}
+          </Entrance>
+        ))}
+      </ScrollView>
+    </Page>
   );
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: color.paper },
   center: { alignItems: "center", justifyContent: "center" },
   content: { padding: space(6), paddingBottom: space(12), gap: space(4) },
   storyteller: {
