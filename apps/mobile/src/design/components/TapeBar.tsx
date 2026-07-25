@@ -63,8 +63,8 @@ const styles = StyleSheet.create({
   thread: { height: 2, backgroundColor: color.gold, marginBottom: space(3) },
   row: { flexDirection: "row", alignItems: "center", gap: space(3) },
   counter: {
-    fontFamily: font.bodyBold,
-    fontSize: 15,
+    fontFamily: font.mono,
+    fontSize: 14,
     color: color.gold,
     fontVariant: ["tabular-nums"],
   },

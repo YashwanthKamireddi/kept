@@ -3,12 +3,19 @@ import { useWindowDimensions, View } from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
+import { useFonts } from "expo-font";
 import {
-  useFonts,
-  Martel_600SemiBold,
-  Martel_800ExtraBold,
-} from "@expo-google-fonts/martel";
-import { Mukta_400Regular, Mukta_500Medium, Mukta_700Bold } from "@expo-google-fonts/mukta";
+  Fraunces_600SemiBold,
+  Fraunces_700Bold,
+  Fraunces_900Black,
+} from "@expo-google-fonts/fraunces";
+import {
+  Newsreader_400Regular,
+  Newsreader_400Regular_Italic,
+  Newsreader_500Medium,
+  Newsreader_600SemiBold,
+} from "@expo-google-fonts/newsreader";
+import { SpaceMono_400Regular } from "@expo-google-fonts/space-mono";
 import { AppStateProvider, useApp } from "./src/state";
 import { SignInScreen } from "./src/screens/SignInScreen";
 import { HomeScreen } from "./src/screens/HomeScreen";
@@ -120,11 +127,14 @@ function Root() {
 
 export default function App() {
   const [fontsLoaded] = useFonts({
-    Martel_600SemiBold,
-    Martel_800ExtraBold,
-    Mukta_400Regular,
-    Mukta_500Medium,
-    Mukta_700Bold,
+    Fraunces_600SemiBold,
+    Fraunces_700Bold,
+    Fraunces_900Black,
+    Newsreader_400Regular,
+    Newsreader_400Regular_Italic,
+    Newsreader_500Medium,
+    Newsreader_600SemiBold,
+    SpaceMono_400Regular,
   });
   if (!fontsLoaded) return null;
   return (

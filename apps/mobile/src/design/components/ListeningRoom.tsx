@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import { color, space, type } from "../tokens";
+import { color, font, space, type } from "../tokens";
 import { Lamplight } from "../materials";
 import { PressableScale, useReduceMotion, NATIVE_DRIVER } from "../motion";
 
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   sentence: { ...type.proseLarge, textAlign: "center" },
   name: { fontSize: 18, lineHeight: 26 },
   keepsake: {
-    fontFamily: "Mukta_500Medium",
+    fontFamily: font.bodyMedium,
     fontSize: 14,
     color: color.foil,
     textDecorationLine: "underline",

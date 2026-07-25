@@ -42,12 +42,24 @@ export const semantic = {
   live: color.gold,
 } as const;
 
+/**
+ * Type system — a printed heirloom, not a template.
+ * - Fraunces: an old-style serif with hand-cut warmth (letterpress, not
+ *   template Playfair) — the wordmark, names, chapter titles.
+ * - Newsreader: an editorial reading serif; the stories read like a printed
+ *   memoir. Its italic is reserved for the storyteller's exact words.
+ * - Space Mono: the tape counter + audio timestamps — a cassette-deck nod,
+ *   tying the type to the recorded-voice subject.
+ */
 export const font = {
-  display: "Martel_800ExtraBold",
-  displaySoft: "Martel_600SemiBold",
-  body: "Mukta_400Regular",
-  bodyMedium: "Mukta_500Medium",
-  bodyBold: "Mukta_700Bold",
+  wordmark: "Fraunces_900Black",
+  display: "Fraunces_700Bold",
+  displaySoft: "Fraunces_600SemiBold",
+  body: "Newsreader_400Regular",
+  bodyMedium: "Newsreader_500Medium",
+  bodyBold: "Newsreader_600SemiBold",
+  quote: "Newsreader_400Regular_Italic", // her exact words
+  mono: "SpaceMono_400Regular", // tape counter, timestamps
 } as const;
 
 /** Letterpress: foil that looks stamped into the cover, not painted on. */
@@ -59,7 +71,7 @@ export const letterpress = {
 
 export const type = {
   wordmark: {
-    fontFamily: font.display,
+    fontFamily: font.wordmark,
     fontSize: 56,
     lineHeight: 72,
     color: color.foil,
@@ -74,8 +86,8 @@ export const type = {
     color: color.foil,
     ...letterpress,
   },
-  prose: { fontFamily: font.body, fontSize: 18, lineHeight: 33, color: color.ink },
-  proseLarge: { fontFamily: font.displaySoft, fontSize: 24, lineHeight: 40, color: color.paper },
+  prose: { fontFamily: font.body, fontSize: 18, lineHeight: 32, color: color.ink },
+  proseLarge: { fontFamily: font.quote, fontSize: 25, lineHeight: 40, color: color.paper },
   label: {
     fontFamily: font.bodyMedium,
     fontSize: 12,
@@ -87,8 +99,8 @@ export const type = {
   body: { fontFamily: font.body, fontSize: 16, lineHeight: 25, color: color.ink },
   caption: { fontFamily: font.body, fontSize: 13, lineHeight: 19, color: color.inkSoft },
   counter: {
-    fontFamily: font.bodyBold,
-    fontSize: 15,
+    fontFamily: font.mono,
+    fontSize: 14,
     color: color.gold,
     fontVariant: ["tabular-nums"] as const,
   },
