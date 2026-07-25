@@ -24,16 +24,14 @@ export function SignInScreen() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [familyName, setFamilyName] = useState("");
-  const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URL);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [showServer, setShowServer] = useState(false);
 
   const submit = async () => {
     setBusy(true);
     setError("");
     try {
-      await signIn(baseUrl, email.trim(), name.trim(), familyName.trim());
+      await signIn(DEFAULT_BASE_URL, email.trim(), name.trim(), familyName.trim());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not reach the server");
     } finally {
@@ -65,9 +63,6 @@ export function SignInScreen() {
               <Field label="Your name" value={name} onChange={setName} />
               <Field label="Email" value={email} onChange={setEmail} keyboard="email-address" />
               <Field label="Family name" value={familyName} onChange={setFamilyName} />
-              {showServer ? (
-                <Field label="Server" value={baseUrl} onChange={setBaseUrl} keyboard="url" />
-              ) : null}
               {error ? <Text style={styles.error}>{error}</Text> : null}
               <PressableScale
                 accessibilityRole="button"
@@ -86,15 +81,6 @@ export function SignInScreen() {
             <Text style={styles.footnote}>
               {strings.consentFootnote}
             </Text>
-            {!showServer ? (
-              <PressableScale
-                accessibilityRole="button"
-                onPress={() => setShowServer(true)}
-                style={styles.advancedHit}
-              >
-                <Text style={styles.advanced}>Advanced</Text>
-              </PressableScale>
-            ) : null}
           </Entrance>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -142,14 +128,5 @@ const styles = StyleSheet.create({
     color: color.stageText,
     textAlign: "center",
     marginTop: space(6),
-  },
-  advancedHit: { alignSelf: "center", paddingVertical: space(2), paddingHorizontal: space(3) },
-  advanced: {
-    fontFamily: font.bodyMedium,
-    fontSize: 12,
-    letterSpacing: 1,
-    textTransform: "uppercase",
-    color: color.stageText,
-    opacity: 0.6,
   },
 });

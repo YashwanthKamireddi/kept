@@ -89,6 +89,29 @@ export function ChapterScreen({ route }: Props) {
 
   if (!chapter) return <Loading label="Opening the chapter…" />;
 
+  const renderSentences = (paragraph: typeof chapter.paragraphs[number], pi: number, dropFirst: boolean) =>
+    paragraph.map((sentence, si) => {
+      const key = `${pi}:${si}`;
+      const select = () => setSpan({ key, anchor: sentence.anchors[0], text: sentence.text });
+      // The first letter of the opening paragraph is lifted into the drop cap;
+      // the sentence keeps its full text for playback and keepsakes.
+      const display =
+        dropFirst && si === 0 ? { ...sentence, text: sentence.text.slice(1) } : sentence;
+      return (
+        <VoiceSentence
+          key={key}
+          sentence={display}
+          playing={span?.key === key && status.playing}
+          onPress={() => sentence.anchors.length > 0 && select()}
+          onLongPress={() => {
+            if (sentence.anchors.length === 0) return;
+            select();
+            setRoomOpen(true);
+          }}
+        />
+      );
+    });
+
   return (
     <Page>
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -97,41 +120,25 @@ export function ChapterScreen({ route }: Props) {
           <Text style={[type.chapterTitle, { marginTop: space(1) }]}>{chapter.title}</Text>
         </Entrance>
         <DrawnRule color={color.hairline} order={1} style={styles.rule} />
-        {chapter.paragraphs.map((paragraph, pi) => (
-          <Entrance key={pi} order={Math.min(pi + 2, 5)}>
-            <Text style={styles.paragraph}>
-              {/* A raised initial opens the chapter, like a printed book. The
-                  letter is lifted out of the first sentence and drawn large;
-                  the sentence stays tappable and its full text is preserved
-                  for playback and keepsakes. */}
-              {pi === 0 && paragraph[0]?.text ? (
+        {chapter.paragraphs.map((paragraph, pi) =>
+          pi === 0 && paragraph[0]?.text ? (
+            // Opening paragraph: a drop cap in the margin, top-aligned with the
+            // first line (RN can't float text, so the initial hangs beside the
+            // column rather than sitting above it).
+            <Entrance key={pi} order={Math.min(pi + 2, 5)}>
+              <View style={styles.firstPara}>
                 <Text style={styles.dropCap}>{paragraph[0].text.charAt(0)}</Text>
-              ) : null}
-              {paragraph.map((sentence, si) => {
-                const key = `${pi}:${si}`;
-                const select = () =>
-                  setSpan({ key, anchor: sentence.anchors[0], text: sentence.text });
-                const display =
-                  pi === 0 && si === 0
-                    ? { ...sentence, text: sentence.text.slice(1) }
-                    : sentence;
-                return (
-                  <VoiceSentence
-                    key={key}
-                    sentence={display}
-                    playing={span?.key === key && status.playing}
-                    onPress={() => sentence.anchors.length > 0 && select()}
-                    onLongPress={() => {
-                      if (sentence.anchors.length === 0) return;
-                      select();
-                      setRoomOpen(true);
-                    }}
-                  />
-                );
-              })}
-            </Text>
-          </Entrance>
-        ))}
+                <Text style={[styles.paragraph, styles.firstParaText]}>
+                  {renderSentences(paragraph, pi, true)}
+                </Text>
+              </View>
+            </Entrance>
+          ) : (
+            <Entrance key={pi} order={Math.min(pi + 2, 5)}>
+              <Text style={styles.paragraph}>{renderSentences(paragraph, pi, false)}</Text>
+            </Entrance>
+          ),
+        )}
         <Entrance order={5}>
           <Text style={styles.colophon}>{strings.colophon}</Text>
         </Entrance>
@@ -169,11 +176,15 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: space(6), paddingTop: space(6), paddingBottom: space(12) },
   rule: { marginVertical: space(5) },
   paragraph: { marginBottom: space(5) },
+  firstPara: { flexDirection: "row", alignItems: "flex-start", marginBottom: space(5) },
+  firstParaText: { flex: 1, marginBottom: 0 },
   dropCap: {
     fontFamily: font.display,
-    fontSize: 52,
-    lineHeight: 44,
+    fontSize: 60,
+    lineHeight: 52,
     color: color.gold,
+    marginRight: space(2),
+    marginTop: -2,
   },
   colophon: {
     ...type.caption,
