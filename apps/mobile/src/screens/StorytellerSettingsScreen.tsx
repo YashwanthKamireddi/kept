@@ -8,7 +8,7 @@ import { Entrance, PressableScale } from "../design/motion";
 import { Page } from "../design/materials";
 import { Loading } from "../design/components/Loading";
 import { haptic } from "../design/haptics";
-import { languageName } from "../design/copy";
+import { languageName, nextCallLine } from "../design/copy";
 import { useApp } from "../state";
 import type { ConsentStatus, Storyteller } from "../api/client";
 
@@ -130,6 +130,9 @@ export function StorytellerSettingsScreen({ route, navigation }: Props) {
           <Text style={[type.body, { color: color.inkSoft }]}>
             Every {st.cadence_days} days, in {languageName(st.language)}.
           </Text>
+          {st.consent === "granted" && nextCallLine(st.next_call_at) && (
+            <Text style={styles.nextCall}>{nextCallLine(st.next_call_at)}</Text>
+          )}
         </Entrance>
 
         <Entrance order={3} style={[styles.block, styles.danger]}>
@@ -155,6 +158,7 @@ export function StorytellerSettingsScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   scroll: { padding: space(6), gap: space(7), paddingBottom: space(12) },
   block: { gap: space(2) },
+  nextCall: { fontFamily: font.bodyMedium, fontSize: 14, color: color.gold },
   secondary: {
     alignSelf: "flex-start",
     borderWidth: 1,
