@@ -87,6 +87,13 @@ export function HomeScreen({ navigation }: Props) {
             <Text style={[type.body, { color: color.inkSoft, textAlign: "center" }]}>
               Add your family's storyteller and we'll call to hear their first story.
             </Text>
+            <PressableScale
+              accessibilityRole="button"
+              onPress={() => navigation.navigate("AddStoryteller")}
+              style={styles.emptyCta}
+            >
+              <Text style={styles.emptyCtaText}>Add your first storyteller</Text>
+            </PressableScale>
           </Entrance>
         ) : null
       }
@@ -243,8 +250,16 @@ const styles = StyleSheet.create({
     paddingBottom: space(28),
   },
   greeting: { gap: space(1), paddingBottom: space(2) },
-  empty: { alignItems: "center", gap: space(4), paddingTop: space(10) },
+  empty: { alignItems: "center", gap: space(4), paddingTop: space(16) },
   emptyRule: { width: 56 },
+  emptyCta: {
+    backgroundColor: color.ink,
+    paddingVertical: space(4),
+    paddingHorizontal: space(7),
+    borderRadius: 12,
+    marginTop: space(2),
+  },
+  emptyCtaText: { fontFamily: font.bodyBold, fontSize: 16, color: color.paper },
   footerBlock: { alignItems: "center", gap: space(6), paddingTop: space(4) },
   brandFoot: {
     fontFamily: font.wordmark,
