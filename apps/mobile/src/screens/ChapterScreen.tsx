@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
-import { color, space, type } from "../design/tokens";
+import { color, font, space, type } from "../design/tokens";
 import { Entrance, DrawnRule } from "../design/motion";
 import { Page } from "../design/materials";
 import { strings } from "../design/copy";
@@ -105,14 +105,25 @@ export function ChapterScreen({ route }: Props) {
         {chapter.paragraphs.map((paragraph, pi) => (
           <Entrance key={pi} order={Math.min(pi + 2, 5)}>
             <Text style={styles.paragraph}>
+              {/* A raised initial opens the chapter, like a printed book. The
+                  letter is lifted out of the first sentence and drawn large;
+                  the sentence stays tappable and its full text is preserved
+                  for playback and keepsakes. */}
+              {pi === 0 && paragraph[0]?.text ? (
+                <Text style={styles.dropCap}>{paragraph[0].text.charAt(0)}</Text>
+              ) : null}
               {paragraph.map((sentence, si) => {
                 const key = `${pi}:${si}`;
                 const select = () =>
                   setSpan({ key, anchor: sentence.anchors[0], text: sentence.text });
+                const display =
+                  pi === 0 && si === 0
+                    ? { ...sentence, text: sentence.text.slice(1) }
+                    : sentence;
                 return (
                   <VoiceSentence
                     key={key}
-                    sentence={sentence}
+                    sentence={display}
                     playing={span?.key === key && status.playing}
                     onPress={() => sentence.anchors.length > 0 && select()}
                     onLongPress={() => {
@@ -164,6 +175,12 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: space(6), paddingTop: space(6), paddingBottom: space(12) },
   rule: { marginVertical: space(5) },
   paragraph: { marginBottom: space(5) },
+  dropCap: {
+    fontFamily: font.display,
+    fontSize: 52,
+    lineHeight: 44,
+    color: color.gold,
+  },
   colophon: {
     ...type.caption,
     color: color.gold,
