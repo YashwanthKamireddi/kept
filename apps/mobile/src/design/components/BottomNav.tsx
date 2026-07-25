@@ -7,8 +7,6 @@ import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { color, font, space } from "../tokens";
 import { PressableScale } from "../motion";
 
-// Immersive/modal inner screens where the floating bar would intrude.
-const HIDE_ON = ["Chapter", "Transcript", "AddStoryteller"];
 
 /**
  * The one place you move through the app: a floating glass bar over the paper.
@@ -19,9 +17,11 @@ export function BottomNav({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const active = state.routes[state.index]?.name;
 
-  // Hide the bar on immersive reads / the add modal.
+  // Top-level nav only: show on the Albums root (Home) and the You tab; hide
+  // on every pushed detail screen (Chapter, Sessions, Manage, …), which carry
+  // their own back button and where a floating bar would cover content.
   const focusedInner = getFocusedRouteNameFromRoute(state.routes[state.index]) ?? "Home";
-  if (active === "Albums" && HIDE_ON.includes(focusedInner)) return null;
+  if (active === "Albums" && focusedInner !== "Home") return null;
 
   const nav = navigation as unknown as {
     emit: typeof navigation.emit;
