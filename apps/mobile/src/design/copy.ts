@@ -105,8 +105,9 @@ export function sessionStatusLine(s: Session): string {
 export function sessionSubLine(s: Session): string {
   switch (s.status) {
     case "completed": {
-      const m = Math.max(1, Math.round(s.duration_seconds / 60));
-      return `${m} minute${m === 1 ? "" : "s"} · tap to read`;
+      // Honest duration: don't round a sub-minute call up to a fake "1 minute".
+      const m = Math.round(s.duration_seconds / 60);
+      return m >= 1 ? `${m} minute${m === 1 ? "" : "s"} · tap to read` : "tap to read";
     }
     case "dropped":
       return "We'll pick up where they left off";
