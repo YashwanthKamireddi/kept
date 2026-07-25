@@ -18,11 +18,13 @@ The job's room metadata must carry {"session_id": "..."} (set by the caller
 that creates the outbound SIP participant).
 """
 
+import asyncio
 import json
 import sys
 import time
 
 from anthropic import AsyncAnthropic
+from katha_core import llm
 from katha_core.config import settings
 from katha_core.db import create_all
 from katha_core.models import Speaker
@@ -39,7 +41,7 @@ from .calls import (
     drop_call,
     storyteller_for_session,
 )
-from .interviewer import stream_turn
+from .interviewer import complete_turn_cli, stream_turn
 
 AGENT_NAME = "katha"
 
@@ -68,9 +70,17 @@ class KathaAgent(Agent):
         self._storyteller = storyteller
         self._session_plan = session_plan
         self._seed = seed_dialogue
-        self._client = AsyncAnthropic(api_key=settings().anthropic_api_key or None)
+        # Two brains behind one seam. "api" streams token-by-token (natural
+        # latency). "claude-cli" runs on the developer's subscription for $0:
+        # each turn is a blocking one-shot, so it's slower and non-streamed —
+        # usable for a demo, not a production call. No API client is created
+        # (and no credits needed) on the CLI path.
+        self._use_cli = llm.backend() == "claude-cli"
+        self._client = None if self._use_cli else AsyncAnthropic(
+            api_key=settings().anthropic_api_key or None
+        )
 
-    async def llm_node(self, chat_ctx, tools, model_settings):
+    def _dialogue(self, chat_ctx) -> list[dict]:
         dialogue = list(self._seed)
         for item in chat_ctx.items:
             if getattr(item, "type", "message") != "message":
@@ -82,7 +92,18 @@ class KathaAgent(Agent):
             dialogue.append({"role": role, "content": text})
         if not dialogue or dialogue[-1]["role"] != "user":
             dialogue.append({"role": "user", "content": "(silence — she is waiting)"})
+        return dialogue
 
+    async def llm_node(self, chat_ctx, tools, model_settings):
+        dialogue = self._dialogue(chat_ctx)
+        if self._use_cli:
+            # Blocking subprocess (claude -p): run off the event loop so the
+            # audio pipeline keeps breathing, then speak the whole turn at once.
+            text = await asyncio.to_thread(
+                complete_turn_cli, self._storyteller, self._session_plan, dialogue
+            )
+            yield text
+            return
         async for delta in stream_turn(
             self._client, self._storyteller, self._session_plan, dialogue
         ):
@@ -167,7 +188,20 @@ def main() -> None:
         print(f"katha-voice: missing credentials: {', '.join(missing)}", file=sys.stderr)
         print("Fill .env (see .env.example) before starting the voice worker.", file=sys.stderr)
         raise SystemExit(2)
-    agents.cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint, agent_name=AGENT_NAME))
+    # Thread LiveKit creds from our .env-backed settings straight into the
+    # worker. The agents framework otherwise only reads them from os.environ,
+    # which pydantic-settings doesn't populate — so without this the worker
+    # fails with "ws_url is required" even though preflight sees the keys.
+    s = settings()
+    agents.cli.run_app(
+        WorkerOptions(
+            entrypoint_fnc=entrypoint,
+            agent_name=AGENT_NAME,
+            ws_url=s.livekit_url,
+            api_key=s.livekit_api_key,
+            api_secret=s.livekit_api_secret,
+        )
+    )
 
 
 if __name__ == "__main__":

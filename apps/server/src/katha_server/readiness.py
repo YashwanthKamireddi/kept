@@ -48,12 +48,38 @@ def capabilities() -> dict:
 
     # What the whole product can actually do, given the above.
     can_run_pipeline = brain_ready
-    can_place_live_call = brain_api and voice["sarvam"] and livekit and sip
+    # The live agent runs on either brain now (claude-cli works, just laggy —
+    # each turn is a blocking one-shot; the API streams for natural latency).
+    can_place_live_call = brain_ready and voice["sarvam"] and livekit and sip
     caps["_summary"] = {
         "pipeline": can_run_pipeline,  # extraction, chapters, evals
         "live_call": can_place_live_call,  # the real phone conversation
+        "live_call_latency": (
+            "natural (streaming API)" if brain_api
+            else "laggy (claude-cli one-shot per turn)" if brain_cli
+            else "no brain"
+        ),
+        "missing_for_live_call": _missing_for_live_call(s),
     }
     return caps
+
+
+def _missing_for_live_call(s) -> list[str]:
+    """Exactly which env vars are still empty before a real call can be placed."""
+    missing = []
+    if not (s.anthropic_api_key or (s.llm_backend or "api") == "claude-cli"):
+        missing.append("ANTHROPIC_API_KEY (or set LLM_BACKEND=claude-cli)")
+    if not s.sarvam_api_key:
+        missing.append("SARVAM_API_KEY")
+    if not s.livekit_url:
+        missing.append("LIVEKIT_URL")
+    if not s.livekit_api_key:
+        missing.append("LIVEKIT_API_KEY")
+    if not s.livekit_api_secret:
+        missing.append("LIVEKIT_API_SECRET")
+    if not s.sip_trunk_id:
+        missing.append("SIP_TRUNK_ID")
+    return missing
 
 
 def _telephony_note(livekit: bool, sip: bool) -> str:
