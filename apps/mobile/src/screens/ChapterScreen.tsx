@@ -10,10 +10,9 @@ import { strings } from "../design/copy";
 import { play } from "../design/sound";
 import { haptic } from "../design/haptics";
 import { useApp } from "../state";
-import type { Anchor, ChapterDetail, Sentence } from "../api/client";
+import type { Anchor, ChapterDetail } from "../api/client";
 import { VoiceSentence } from "../design/components/VoiceSentence";
 import { TapeBar } from "../design/components/TapeBar";
-import { EnvelopeReveal } from "../design/components/EnvelopeReveal";
 import { ListeningRoom } from "../design/components/ListeningRoom";
 import { KeepsakeCard } from "../design/components/KeepsakeCard";
 
@@ -25,22 +24,9 @@ interface PlayingSpan {
   text: string;
 }
 
-function firstAnchored(chapter: ChapterDetail): PlayingSpan | null {
-  for (let pi = 0; pi < chapter.paragraphs.length; pi++) {
-    for (let si = 0; si < chapter.paragraphs[pi].length; si++) {
-      const sentence: Sentence = chapter.paragraphs[pi][si];
-      if (sentence.anchors.length > 0) {
-        return { key: `${pi}:${si}`, anchor: sentence.anchors[0], text: sentence.text };
-      }
-    }
-  }
-  return null;
-}
-
 export function ChapterScreen({ route }: Props) {
   const { client } = useApp();
   const [chapter, setChapter] = useState<ChapterDetail | null>(null);
-  const [revealed, setRevealed] = useState(false);
   const [span, setSpan] = useState<PlayingSpan | null>(null);
   const [roomOpen, setRoomOpen] = useState(false);
   const [keepsakeOpen, setKeepsakeOpen] = useState(false);
@@ -108,23 +94,8 @@ export function ChapterScreen({ route }: Props) {
     );
   }
 
-  const onEnvelopeOpened = () => {
-    setRevealed(true);
-    play("paper_turn");
-    // The teaser: the first sentence in her voice, if a recording is synced.
-    const teaser = firstAnchored(chapter);
-    if (teaser) setSpan(teaser);
-  };
-
   return (
     <Page>
-      {!revealed && (
-        <EnvelopeReveal
-          ordinal={chapter.ordinal}
-          title={chapter.title}
-          onOpened={onEnvelopeOpened}
-        />
-      )}
       <ScrollView contentContainerStyle={styles.scroll}>
         <Entrance order={0}>
           <Text style={[type.label, { color: color.gold }]}>Chapter {chapter.ordinal}</Text>
