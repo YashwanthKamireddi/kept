@@ -67,7 +67,7 @@ PAGE = """<!doctype html>
   <div id="status">Click connect, then allow your microphone and say hello.</div>
   <script src="https://cdn.jsdelivr.net/npm/livekit-client@2/dist/livekit-client.umd.min.js"></script>
   <script>
-    const URL="__URL__", TOKEN="__TOKEN__";
+    const WS_URL="__URL__", TOKEN="__TOKEN__";
     const st=document.getElementById('status'), go=document.getElementById('go');
     go.onclick=async()=>{
       go.disabled=true;
@@ -78,7 +78,7 @@ PAGE = """<!doctype html>
           if(track.kind==='audio'){const el=track.attach();el.autoplay=true;document.body.appendChild(el);}
         });
         room.on(LivekitClient.RoomEvent.Disconnected,()=>{st.textContent="Call ended.";go.disabled=false;});
-        await room.connect(URL,TOKEN);
+        await room.connect(WS_URL,TOKEN);
         await room.localParticipant.setMicrophoneEnabled(true);
         st.textContent="Connected — say hello. Kept may take a few seconds to reply on the free brain.";
       }catch(e){st.textContent="Error: "+e.message+" — is the worker running?";go.disabled=false;}
