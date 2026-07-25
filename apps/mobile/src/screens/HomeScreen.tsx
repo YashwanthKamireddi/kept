@@ -1,13 +1,5 @@
-import React, { useCallback, useLayoutEffect, useState } from "react";
-import {
-  Animated,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import React, { useCallback, useState } from "react";
+import { Animated, FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -34,7 +26,7 @@ interface Shelf {
  * (chapters) peeking out beneath.
  */
 export function HomeScreen({ navigation }: Props) {
-  const { client, signOut } = useApp();
+  const { client } = useApp();
   const [shelves, setShelves] = useState<Shelf[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -72,28 +64,6 @@ export function HomeScreen({ navigation }: Props) {
     }, [load]),
   );
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => navigation.navigate("AddStoryteller")}
-          style={styles.headerBtn}
-        >
-          <Text style={styles.addButton}>Add</Text>
-        </Pressable>
-      ),
-      headerLeft: () => (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => void signOut()}
-          style={styles.headerBtn}
-        >
-          <Text style={styles.signOut}>Sign out</Text>
-        </Pressable>
-      ),
-    });
-  }, [navigation, signOut]);
 
   return (
     <Page>
@@ -153,13 +123,6 @@ export function HomeScreen({ navigation }: Props) {
       ListFooterComponent={
         shelves.length > 0 ? (
           <Entrance order={shelves.length + 1} style={styles.footerBlock}>
-            <PressableScale
-              accessibilityRole="button"
-              onPress={() => navigation.navigate("AddStoryteller")}
-              style={styles.addAnother}
-            >
-              <Text style={styles.addAnotherText}>＋  Add another storyteller</Text>
-            </PressableScale>
             <Text style={styles.brandFoot}>Kept</Text>
           </Entrance>
         ) : null
@@ -271,32 +234,21 @@ function Album({
 
 
 const styles = StyleSheet.create({
-  // Top-anchored, like any real app's home screen — a greeting gives the
-  // page a reason to exist even with one storyteller, instead of a lone
-  // card floating in a centered void.
+  // No stack header on Home now — the greeting is the masthead. Top padding
+  // clears the status bar; the deep bottom padding clears the floating nav.
   content: {
-    padding: space(5),
+    paddingHorizontal: space(5),
+    paddingTop: space(9),
     gap: space(6),
-    paddingBottom: space(12),
+    paddingBottom: space(28),
   },
   greeting: { gap: space(1), paddingBottom: space(2) },
   empty: { alignItems: "center", gap: space(4), paddingTop: space(10) },
   emptyRule: { width: 56 },
   footerBlock: { alignItems: "center", gap: space(6), paddingTop: space(4) },
-  addAnother: {
-    borderWidth: 1,
-    borderColor: color.hairline,
-    borderStyle: "dashed",
-    borderRadius: radius.cover,
-    paddingVertical: space(4),
-    paddingHorizontal: space(6),
-    width: "100%",
-    alignItems: "center",
-  },
-  addAnotherText: { fontFamily: font.bodyMedium, fontSize: 15, color: color.inkSoft },
   brandFoot: {
-    fontFamily: font.display,
-    fontSize: 20,
+    fontFamily: font.wordmark,
+    fontSize: 22,
     color: color.hairline,
     letterSpacing: 1,
   },
@@ -362,8 +314,6 @@ const styles = StyleSheet.create({
   },
   chapterOrdinal: { fontFamily: font.displaySoft, fontSize: 16, color: color.gold },
   chapterGo: { fontFamily: font.body, fontSize: 16, color: color.hairline },
-  headerBtn: { paddingHorizontal: space(4), paddingVertical: space(2) },
-  addButton: { fontFamily: font.bodyBold, fontSize: 16, color: color.gold },
   footer: {
     flexDirection: "row",
     alignItems: "center",
@@ -375,5 +325,4 @@ const styles = StyleSheet.create({
   },
   footerLink: { fontFamily: font.bodyMedium, fontSize: 14, color: color.gold },
   footerDot: { color: color.hairline },
-  signOut: { fontFamily: font.bodyMedium, fontSize: 14, color: color.inkSoft },
 });

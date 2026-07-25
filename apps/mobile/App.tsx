@@ -2,6 +2,7 @@ import React from "react";
 import { useWindowDimensions, View } from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import {
@@ -25,11 +26,14 @@ import { SessionsScreen } from "./src/screens/SessionsScreen";
 import { TranscriptScreen } from "./src/screens/TranscriptScreen";
 import { FollowUpsScreen } from "./src/screens/FollowUpsScreen";
 import { StorytellerSettingsScreen } from "./src/screens/StorytellerSettingsScreen";
+import { AccountScreen } from "./src/screens/AccountScreen";
 import { ErrorBoundary } from "./src/design/components/ErrorBoundary";
+import { BottomNav } from "./src/design/components/BottomNav";
 import type { RootStackParamList } from "./src/navigation";
 import { color, font } from "./src/design/tokens";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator();
 
 const theme = {
   ...DefaultTheme,
@@ -77,10 +81,7 @@ function ResponsiveFrame({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Root() {
-  const { client, ready } = useApp();
-  if (!ready) return null; // restoring a persisted session
-  if (!client) return <SignInScreen />;
+function AlbumsStack() {
   return (
     <Stack.Navigator
       screenOptions={{
@@ -90,11 +91,7 @@ function Root() {
         headerShadowVisible: false,
       }}
     >
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ title: "The Album", headerLargeTitle: true }}
-      />
+      <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="Chapter"
         component={ChapterScreen}
@@ -122,6 +119,21 @@ function Root() {
         options={{ title: "Manage" }}
       />
     </Stack.Navigator>
+  );
+}
+
+function Root() {
+  const { client, ready } = useApp();
+  if (!ready) return null; // restoring a persisted session
+  if (!client) return <SignInScreen />;
+  return (
+    <Tab.Navigator
+      tabBar={(props) => <BottomNav {...props} />}
+      screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: color.paper } }}
+    >
+      <Tab.Screen name="Albums" component={AlbumsStack} />
+      <Tab.Screen name="You" component={AccountScreen} />
+    </Tab.Navigator>
   );
 }
 
