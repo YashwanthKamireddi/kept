@@ -139,7 +139,12 @@ export function ChapterScreen({ route }: Props) {
             </Entrance>
           ),
         )}
-        <Entrance order={5}>
+        <Entrance order={5} style={styles.closing}>
+          <View style={styles.ornament}>
+            <View style={styles.ornLine} />
+            <View style={styles.ornDiamond} />
+            <View style={styles.ornLine} />
+          </View>
           <Text style={styles.colophon}>{strings.colophon}</Text>
         </Entrance>
       </ScrollView>
@@ -186,9 +191,19 @@ const styles = StyleSheet.create({
     marginRight: space(2),
     marginTop: -2,
   },
+  closing: { alignItems: "center", gap: space(5), marginTop: space(8) },
+  ornament: { flexDirection: "row", alignItems: "center", gap: space(3) },
+  ornLine: { width: 36, height: 1, backgroundColor: color.hairline },
+  ornDiamond: {
+    width: 6,
+    height: 6,
+    backgroundColor: color.gold,
+    transform: [{ rotate: "45deg" }],
+  },
   colophon: {
     ...type.caption,
     color: color.gold,
-    marginTop: space(6),
+    textAlign: "center",
+    maxWidth: 300,
   },
 });
