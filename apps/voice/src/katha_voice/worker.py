@@ -27,7 +27,7 @@ from anthropic import AsyncAnthropic
 from katha_core import llm
 from katha_core.config import settings
 from katha_core.db import create_all
-from katha_core.models import Speaker
+from katha_core.models import Speaker, Storyteller
 from livekit import agents
 from livekit.agents import Agent, AgentSession, JobContext, WorkerOptions
 from livekit.plugins import sarvam, silero
@@ -114,12 +114,48 @@ def _plan_text(planned_themes: list) -> str:
     return "\n".join(str(t) for t in planned_themes) or "First conversation — introduce, ask consent, start with childhood."
 
 
+async def _run_test_agent(ctx: JobContext) -> None:
+    """Playground/echo mode: talk to Kept over the browser with no phone, no
+    call record, no DB. Same STT/brain/TTS as a real call, English so it's
+    easy to try. Runs on whatever LLM_BACKEND is set (claude-cli = free)."""
+    storyteller = Storyteller(
+        name="a storyteller",
+        address_as="friend",
+        language="en-IN",  # Sarvam Indian-English STT + TTS
+        life_brief_version=0,
+        life_brief="",
+    )
+    session = AgentSession(
+        stt=sarvam.STT(language=storyteller.language, api_key=settings().sarvam_api_key),
+        tts=sarvam.TTS(
+            target_language_code=storyteller.language,
+            model="bulbul:v3",
+            api_key=settings().sarvam_api_key,
+        ),
+        vad=silero.VAD.load(),
+    )
+    agent = KathaAgent(
+        storyteller=storyteller,
+        session_plan=_plan_text([]),
+        seed_dialogue=[],
+    )
+    await ctx.connect()
+    await session.start(agent, room=ctx.room)
+    await ctx.wait_for_participant()
+    # Kept opens the conversation so you hear it the moment you join.
+    session.generate_reply()
+
+
 async def entrypoint(ctx: JobContext) -> None:
     await create_all()
     meta = json.loads(ctx.room.metadata or "{}")
     session_id = meta.get("session_id")
     if not session_id:
-        raise RuntimeError("room metadata missing session_id")
+        # No call to attach to (e.g. the LiveKit playground) — run a throwaway
+        # interviewer so you can hear STT -> brain -> TTS with your own mic.
+        # No DB writes, no call record, no telephony.
+        await _run_test_agent(ctx)
+        return
 
     call = await begin_call(session_id)
     storyteller = await storyteller_for_session(session_id)
