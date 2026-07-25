@@ -14,7 +14,7 @@ const GRAIN_URI =
 
 export function PaperGrain() {
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <View style={[StyleSheet.absoluteFill, { pointerEvents: "none" }]}>
       <Image
         source={{ uri: GRAIN_URI }}
         resizeMode="repeat"

@@ -210,8 +210,10 @@ function Album({
         </View>
         {live && (
           <Animated.View
-            pointerEvents="none"
-            style={[StyleSheet.absoluteFill, { backgroundColor: color.foil, opacity: glow }]}
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: color.foil, opacity: glow, pointerEvents: "none" },
+            ]}
           />
         )}
       </LinearGradient>
