@@ -26,6 +26,7 @@ import { SessionsScreen } from "./src/screens/SessionsScreen";
 import { TranscriptScreen } from "./src/screens/TranscriptScreen";
 import { FollowUpsScreen } from "./src/screens/FollowUpsScreen";
 import { StorytellerSettingsScreen } from "./src/screens/StorytellerSettingsScreen";
+import { PortraitScreen } from "./src/screens/PortraitScreen";
 import { AccountScreen } from "./src/screens/AccountScreen";
 import { ErrorBoundary } from "./src/design/components/ErrorBoundary";
 import { BottomNav } from "./src/design/components/BottomNav";
@@ -117,6 +118,11 @@ function AlbumsStack() {
         name="StorytellerSettings"
         component={StorytellerSettingsScreen}
         options={{ title: "Manage" }}
+      />
+      <Stack.Screen
+        name="Portrait"
+        component={PortraitScreen}
+        options={{ title: "", animation: "fade_from_bottom" }}
       />
     </Stack.Navigator>
   );

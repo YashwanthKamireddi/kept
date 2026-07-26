@@ -171,3 +171,39 @@ def test_chapter_detail_resolves_audio_anchors(client):
         f"/storytellers/{st['id']}/sessions", headers=_auth(token)
     ).json()
     assert len(sessions) == 1 and sessions[0]["audio_key"] == "audio/call1.ogg"
+
+
+def test_portrait_surfaces_the_life_brief(client):
+    token = _signup(client)["token"]
+    sid = client.post(
+        "/storytellers",
+        headers=_auth(token),
+        json={"name": "Rose", "address_as": "Rose", "phone_e164": "+15551230000"},
+    ).json()["id"]
+
+    # empty before the pipeline has learned anything
+    p = client.get(f"/storytellers/{sid}/portrait", headers=_auth(token))
+    assert p.status_code == 200
+    assert p.json() == {"name": "Rose", "life_brief": "", "life_brief_version": 0}
+
+    # once a Life Brief exists, the family sees it verbatim
+    async def _set() -> None:
+        from katha_core.models import Storyteller
+
+        async with db.session() as s:
+            st = await s.get(Storyteller, sid)
+            st.life_brief = "# Life Brief\n\n## People\n- **Mother** — she sang"
+            st.life_brief_version = 2
+            await s.commit()
+
+    asyncio.run(_set())
+    got = client.get(f"/storytellers/{sid}/portrait", headers=_auth(token)).json()
+    assert got["life_brief_version"] == 2
+    assert "## People" in got["life_brief"]
+
+    # a different family cannot read this storyteller's portrait
+    other = client.post(
+        "/auth/signup",
+        json={"email": "other@example.com", "name": "O", "family_name": "Other"},
+    ).json()["token"]
+    assert client.get(f"/storytellers/{sid}/portrait", headers=_auth(other)).status_code == 404

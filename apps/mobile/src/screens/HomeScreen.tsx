@@ -124,6 +124,12 @@ export function HomeScreen({ navigation }: Props) {
                 storytellerId: item.storyteller.id,
               })
             }
+            onOpenPortrait={() =>
+              navigation.navigate("Portrait", {
+                storytellerId: item.storyteller.id,
+                name: item.storyteller.name,
+              })
+            }
           />
         </Entrance>
       )}
@@ -145,12 +151,14 @@ function Album({
   onOpenSessions,
   onOpenThreads,
   onOpenSettings,
+  onOpenPortrait,
 }: {
   shelf: Shelf;
   onOpenChapter: (chapterId: string) => void;
   onOpenSessions: () => void;
   onOpenThreads: () => void;
   onOpenSettings: () => void;
+  onOpenPortrait: () => void;
 }) {
   const { storyteller, chapters, sessionCount, live } = shelf;
   // Chapters arrive as every version; reason about the latest version per
@@ -222,12 +230,16 @@ function Album({
           <Text style={styles.stats}>{countLine(visible.length, sessionCount)}</Text>
         )}
         <View style={styles.footer}>
+          <PressableScale accessibilityRole="button" onPress={onOpenPortrait}>
+            <Text style={styles.footerLink}>Portrait</Text>
+          </PressableScale>
+          <Text style={styles.footerDot}>·</Text>
           <PressableScale accessibilityRole="button" onPress={onOpenSessions}>
             <Text style={styles.footerLink}>Calls</Text>
           </PressableScale>
           <Text style={styles.footerDot}>·</Text>
           <PressableScale accessibilityRole="button" onPress={onOpenThreads}>
-            <Text style={styles.footerLink}>Open threads</Text>
+            <Text style={styles.footerLink}>Threads</Text>
           </PressableScale>
           <Text style={styles.footerDot}>·</Text>
           <PressableScale accessibilityRole="button" onPress={onOpenSettings}>

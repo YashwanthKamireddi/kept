@@ -6,4 +6,5 @@ export type RootStackParamList = {
   Transcript: { sessionId: string };
   FollowUps: { storytellerId: string; name: string };
   StorytellerSettings: { storytellerId: string };
+  Portrait: { storytellerId: string; name: string };
 };

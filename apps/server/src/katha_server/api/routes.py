@@ -195,6 +195,22 @@ async def list_chapters(storyteller_id: str, db: Db, keeper: CurrentKeeper) -> l
     )
 
 
+@router.get(
+    "/storytellers/{storyteller_id}/portrait",
+    response_model=schemas.PortraitOut,
+    tags=["storytellers"],
+)
+async def get_portrait(
+    storyteller_id: str, db: Db, keeper: CurrentKeeper
+) -> schemas.PortraitOut:
+    st = await _owned_storyteller(db, keeper, storyteller_id)
+    return schemas.PortraitOut(
+        name=st.name,
+        life_brief=st.life_brief or "",
+        life_brief_version=st.life_brief_version,
+    )
+
+
 @router.get("/chapters/{chapter_id}", response_model=schemas.ChapterDetailOut, tags=["chapters"])
 async def get_chapter(chapter_id: str, db: Db, keeper: CurrentKeeper) -> schemas.ChapterDetailOut:
     ch = await db.get(Chapter, chapter_id)

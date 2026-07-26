@@ -74,6 +74,12 @@ export interface ChapterDetail extends Chapter {
   paragraphs: Sentence[][];
 }
 
+export interface Portrait {
+  name: string;
+  life_brief: string; // markdown built by the pipeline
+  life_brief_version: number;
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -169,6 +175,9 @@ export class KathaClient {
 
   getChapter = (chapterId: string) =>
     this.request<ChapterDetail>("GET", `/chapters/${chapterId}`);
+
+  getPortrait = (storytellerId: string) =>
+    this.request<Portrait>("GET", `/storytellers/${storytellerId}/portrait`);
 
   /** Short-lived playback URL for a recording (server presigns from R2). */
   resolveAudioUrl = async (audioKey: string): Promise<string | null> => {

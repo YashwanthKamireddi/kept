@@ -47,6 +47,15 @@ class StorytellerOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class PortraitOut(BaseModel):
+    """A warm profile of the storyteller, assembled from their own stories —
+    the Life Brief the pipeline maintains, surfaced to the family."""
+
+    name: str
+    life_brief: str
+    life_brief_version: int
+
+
 class ConsentIn(BaseModel):
     consent: ConsentStatus
 
