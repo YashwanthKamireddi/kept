@@ -1,25 +1,27 @@
 import React from "react";
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
-import { BlurView } from "expo-blur";
+import { StyleSheet, Text, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { color, font, space } from "../tokens";
 import { PressableScale } from "../motion";
 
+// The deep ink the dock is cut from (ties into the dark cover scenes).
+const BAR_TOP = "#242D3A";
+const BAR_BOTTOM = "#151A22";
 
 /**
- * The one place you move through the app: a floating glass bar over the paper.
- * Albums (your shelf) · Add (a new storyteller) · You (the keeper). Replaces
- * the scattered header buttons — one nav, said once.
+ * The one place you move through the app: a solid, floating ink dock —
+ * Albums · Add · You. (A translucent "glass" bar turned muddy over the flat
+ * paper; a crisp dark dock reads premium and high-contrast instead.)
  */
 export function BottomNav({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const active = state.routes[state.index]?.name;
 
   // Top-level nav only: show on the Albums root (Home) and the You tab; hide
-  // on every pushed detail screen (Chapter, Sessions, Manage, …), which carry
-  // their own back button and where a floating bar would cover content.
+  // on every pushed detail screen, which carries its own back button.
   const focusedInner = getFocusedRouteNameFromRoute(state.routes[state.index]) ?? "Home";
   if (active === "Albums" && focusedInner !== "Home") return null;
 
@@ -39,7 +41,7 @@ export function BottomNav({ state, navigation }: BottomTabBarProps) {
 
   return (
     <View style={[styles.wrap, { bottom: insets.bottom + space(3) }]} pointerEvents="box-none">
-      <BlurView intensity={Platform.OS === "web" ? 24 : 40} tint="dark" style={styles.bar}>
+      <LinearGradient colors={[BAR_TOP, BAR_BOTTOM]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.bar}>
         <NavItem label="Albums" active={active === "Albums"} onPress={() => go("Albums")}>
           <AlbumGlyph active={active === "Albums"} />
         </NavItem>
@@ -53,7 +55,7 @@ export function BottomNav({ state, navigation }: BottomTabBarProps) {
         <NavItem label="You" active={active === "You"} onPress={() => go("You")}>
           <PersonGlyph active={active === "You"} />
         </NavItem>
-      </BlurView>
+      </LinearGradient>
     </View>
   );
 }
@@ -70,19 +72,20 @@ function NavItem({
   children: React.ReactNode;
 }) {
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={styles.item}>
+    <PressableScale accessibilityRole="button" onPress={onPress} style={styles.item}>
       {children}
       <Text style={[styles.label, { color: active ? color.foil : color.stageText }]}>{label}</Text>
-    </Pressable>
+      <View style={[styles.dot, active && styles.dotOn]} />
+    </PressableScale>
   );
 }
 
 function AlbumGlyph({ active }: { active: boolean }) {
   const c = active ? color.foil : color.stageText;
   return (
-    <View style={{ width: 22, height: 18, borderWidth: 1.6, borderColor: c, borderRadius: 3 }}>
+    <View style={{ width: 22, height: 18, borderWidth: 2, borderColor: c, borderRadius: 3 }}>
       <View
-        style={{ position: "absolute", left: 4, top: 2, bottom: 2, width: 1.6, backgroundColor: c }}
+        style={{ position: "absolute", left: 4, top: 2, bottom: 2, width: 2, backgroundColor: c }}
       />
     </View>
   );
@@ -92,14 +95,14 @@ function PersonGlyph({ active }: { active: boolean }) {
   const c = active ? color.foil : color.stageText;
   return (
     <View style={{ width: 22, height: 19, alignItems: "center" }}>
-      <View style={{ width: 8, height: 8, borderRadius: 4, borderWidth: 1.6, borderColor: c }} />
+      <View style={{ width: 8, height: 8, borderRadius: 4, borderWidth: 2, borderColor: c }} />
       <View
         style={{
           width: 18,
           height: 9,
           borderTopLeftRadius: 9,
           borderTopRightRadius: 9,
-          borderWidth: 1.6,
+          borderWidth: 2,
           borderBottomWidth: 0,
           borderColor: c,
           marginTop: 2,
@@ -116,38 +119,42 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     width: "100%",
-    height: 66,
-    paddingHorizontal: space(7),
-    borderRadius: 30,
-    overflow: "hidden",
+    height: 68,
+    paddingHorizontal: space(8),
+    borderRadius: 26,
     borderWidth: 1,
-    borderColor: "rgba(201,162,75,0.22)", // faint foil hairline
-    backgroundColor: "rgba(20,24,31,0.62)", // ink glass tint under the blur
-    // floats above the paper
-    shadowColor: "#000",
-    shadowOpacity: 0.28,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 10 },
+    borderColor: "rgba(255,255,255,0.08)", // a lit top edge
+    // deep float above the paper
+    shadowColor: "#0B0E13",
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 14,
   },
-  item: { alignItems: "center", gap: 4, minWidth: 56, paddingVertical: space(1) },
+  item: { alignItems: "center", gap: 5, minWidth: 60, paddingVertical: space(2) },
   label: {
     fontFamily: font.bodyMedium,
-    fontSize: 10,
-    letterSpacing: 1.2,
+    fontSize: 11,
+    letterSpacing: 1.4,
     textTransform: "uppercase",
   },
-  addWrap: { alignItems: "center", justifyContent: "center" },
+  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: "transparent" },
+  dotOn: { backgroundColor: color.foil },
+  addWrap: { marginTop: -10 }, // raised, like a proper dock action
   addCircle: {
-    width: 48,
-    height: 48,
+    width: 54,
+    height: 54,
     borderRadius: 999,
     backgroundColor: color.foil,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 3,
+    borderColor: BAR_BOTTOM, // ring separates it from the bar for a raised read
     shadowColor: color.foil,
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
     shadowOffset: { width: 0, height: 4 },
+    elevation: 10,
   },
-  addPlus: { fontFamily: font.body, fontSize: 26, lineHeight: 30, color: color.stage },
+  addPlus: { fontFamily: font.body, fontSize: 28, lineHeight: 32, color: BAR_BOTTOM },
 });
