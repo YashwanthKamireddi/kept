@@ -53,6 +53,9 @@ a go-to-market wedge, isolated to provider config — never the product's identi
   verifier** promotes it from *draft* to *verified* only when every factual sentence is supported by
   the transcript segments it's anchored to. Sentences carrying real recorded audio wear a fine gold
   thread — *fidelity, made visible.*
+- **Draws a portrait.** As calls accumulate, Kept keeps a living *Life Brief* — the people, places,
+  and moments that recur — and shows the family a warm **Portrait** of who this person is, assembled
+  entirely from their own words.
 - **Gives the family a keepsake app** — a warm, letterpress-styled reader where they read the memoir
   and (with the storyteller's blessing) hear it in the real voice. The family owns it and can erase
   any album, entirely, at any time.
@@ -72,6 +75,11 @@ a go-to-market wedge, isolated to provider config — never the product's identi
 |:---:|:---:|:---:|
 | <img src="docs/showcase/04-calls.png" width="230"/> | <img src="docs/showcase/06-manage.png" width="230"/> | <img src="docs/showcase/08-add.png" width="230"/> |
 | A timeline of every conversation, with honest states. | Consent, cadence, and a one-tap "erase everything." | Universal — any name, any language, any voice. |
+
+| Portrait | You | Arrival |
+|:---:|:---:|:---:|
+| <img src="docs/showcase/09-portrait.png" width="230"/> | <img src="docs/showcase/07-account.png" width="230"/> | <img src="docs/showcase/01-signin.png" width="230"/> |
+| Who they are — the people, places, and moments, drawn from their own stories. | The keeper's account, kept simple. | Opening the album, in lamplight. |
 
 </div>
 
@@ -160,8 +168,8 @@ pipeline for free on a Claude subscription.
   fidelity-verified, audio-anchored chapter.
 - The live voice interviewer over WebRTC (Sarvam STT → Claude → Sarvam TTS), verified in the
   browser; a $0 path via the `claude-cli` brain.
-- The complete keeper app: onboarding, the album, the reader, calls, transcripts, follow-ups,
-  consent + erasure — browser-verified, responsive.
+- The complete keeper app: onboarding, the album, the reader, the storyteller portrait, calls,
+  transcripts, follow-ups, consent + erasure — browser-verified, responsive.
 - An eval harness: synthetic elders interviewed by the *real* interviewer, scored by a judge on six
   craft dimensions.
 
