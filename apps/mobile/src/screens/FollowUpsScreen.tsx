@@ -89,10 +89,6 @@ export function FollowUpsScreen({ route }: Props) {
               {sending ? "Adding to the threads…" : "Add to the next calls"}
             </Text>
           </PressableScale>
-          <Text style={type.caption}>
-            Remove anything the family would rather leave untouched — it will
-            never be raised on a call.
-          </Text>
         </Entrance>
       }
       ListEmptyComponent={
