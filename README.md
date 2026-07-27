@@ -53,9 +53,13 @@ a go-to-market wedge, isolated to provider config — never the product's identi
   verifier** promotes it from *draft* to *verified* only when every factual sentence is supported by
   the transcript segments it's anchored to. Sentences carrying real recorded audio wear a fine gold
   thread — *fidelity, made visible.*
-- **Draws a portrait.** As calls accumulate, Kept keeps a living *Life Brief* — the people, places,
-  and moments that recur — and shows the family a warm **Portrait** of who this person is, assembled
-  entirely from their own words.
+- **Draws a living portrait.** From the life graph the pipeline builds — the people, places, and
+  things a life keeps returning to — Kept assembles a **Portrait** that carries the words the
+  storyteller actually spoke about each one, set in the italic reserved for their exact voice.
+  Nothing is invented; every line traces to something they said.
+- **Reads as one book, and finds anything in it.** The family can read the whole **memoir** end to
+  end in one continuous, letterpress-styled sitting, and **search** across both the written book and
+  the storyteller's own recorded words to find a person, a place, or a moment.
 - **Gives the family a keepsake app** — a warm, letterpress-styled reader where they read the memoir
   and (with the storyteller's blessing) hear it in the real voice. The family owns it and can erase
   any album, entirely, at any time.
@@ -79,7 +83,12 @@ a go-to-market wedge, isolated to provider config — never the product's identi
 | Portrait | You | Arrival |
 |:---:|:---:|:---:|
 | <img src="docs/showcase/09-portrait.png" width="230"/> | <img src="docs/showcase/07-account.png" width="230"/> | <img src="docs/showcase/01-signin.png" width="230"/> |
-| Who they are — the people, places, and moments, drawn from their own stories. | The keeper's account, kept simple. | Opening the album, in lamplight. |
+| Who they are — the people and places of a life, each carrying the words they actually spoke. | The keeper's account, kept simple. | Opening the album, in lamplight. |
+
+| The whole memoir | Search |
+|:---:|:---:|
+| <img src="docs/showcase/10-memoir.png" width="230"/> | <img src="docs/showcase/11-search.png" width="230"/> |
+| The book read end to end — each chapter opens with a drop cap; the recorded sentences keep their gold thread. | Find a story or a moment across the written book and the storyteller's own recorded words. |
 
 </div>
 
@@ -168,8 +177,8 @@ pipeline for free on a Claude subscription.
   fidelity-verified, audio-anchored chapter.
 - The live voice interviewer over WebRTC (Sarvam STT → Claude → Sarvam TTS), verified in the
   browser; a $0 path via the `claude-cli` brain.
-- The complete keeper app: onboarding, the album, the reader, the storyteller portrait, calls,
-  transcripts, follow-ups, consent + erasure — browser-verified, responsive.
+- The complete keeper app: onboarding, the album, the reader, the whole-memoir view, search, the
+  living portrait, calls, transcripts, follow-ups, consent + erasure — browser-verified, responsive.
 - An eval harness: synthetic elders interviewed by the *real* interviewer, scored by a judge on six
   craft dimensions.
 
