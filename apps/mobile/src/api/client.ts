@@ -74,10 +74,62 @@ export interface ChapterDetail extends Chapter {
   paragraphs: Sentence[][];
 }
 
+export interface MemoirChapter {
+  ordinal: number;
+  title: string;
+  paragraphs: Sentence[][];
+}
+
+export interface Memoir {
+  name: string;
+  chapters: MemoirChapter[];
+}
+
+export interface SearchChapterHit {
+  chapter_id: string;
+  ordinal: number;
+  title: string;
+  snippet: string;
+}
+
+export interface SearchMomentHit {
+  session_id: string;
+  started_at: string | null;
+  snippet: string;
+}
+
+export interface SearchResults {
+  query: string;
+  chapters: SearchChapterHit[];
+  moments: SearchMomentHit[];
+}
+
 export interface Portrait {
   name: string;
   life_brief: string; // markdown built by the pipeline
   life_brief_version: number;
+}
+
+export interface LifeMoment {
+  quote: string;
+  anchor: Anchor | null;
+}
+
+export interface LifeEntity {
+  name: string;
+  summary: string;
+  moments: LifeMoment[];
+}
+
+export interface LifeGroup {
+  kind: string;
+  label: string;
+  entities: LifeEntity[];
+}
+
+export interface Life {
+  name: string;
+  groups: LifeGroup[];
 }
 
 export class ApiError extends Error {
@@ -176,8 +228,20 @@ export class KathaClient {
   getChapter = (chapterId: string) =>
     this.request<ChapterDetail>("GET", `/chapters/${chapterId}`);
 
+  getMemoir = (storytellerId: string) =>
+    this.request<Memoir>("GET", `/storytellers/${storytellerId}/memoir`);
+
+  search = (storytellerId: string, q: string) =>
+    this.request<SearchResults>(
+      "GET",
+      `/storytellers/${storytellerId}/search?q=${encodeURIComponent(q)}`,
+    );
+
   getPortrait = (storytellerId: string) =>
     this.request<Portrait>("GET", `/storytellers/${storytellerId}/portrait`);
+
+  getLife = (storytellerId: string) =>
+    this.request<Life>("GET", `/storytellers/${storytellerId}/life`);
 
   /** Short-lived playback URL for a recording (server presigns from R2). */
   resolveAudioUrl = async (audioKey: string): Promise<string | null> => {

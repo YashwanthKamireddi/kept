@@ -27,6 +27,8 @@ import { TranscriptScreen } from "./src/screens/TranscriptScreen";
 import { FollowUpsScreen } from "./src/screens/FollowUpsScreen";
 import { StorytellerSettingsScreen } from "./src/screens/StorytellerSettingsScreen";
 import { PortraitScreen } from "./src/screens/PortraitScreen";
+import { MemoirScreen } from "./src/screens/MemoirScreen";
+import { SearchScreen } from "./src/screens/SearchScreen";
 import { AccountScreen } from "./src/screens/AccountScreen";
 import { ErrorBoundary } from "./src/design/components/ErrorBoundary";
 import { BottomNav } from "./src/design/components/BottomNav";
@@ -124,6 +126,12 @@ function AlbumsStack() {
         component={PortraitScreen}
         options={{ title: "", animation: "fade_from_bottom" }}
       />
+      <Stack.Screen
+        name="Memoir"
+        component={MemoirScreen}
+        options={{ title: "", animation: "fade_from_bottom" }}
+      />
+      <Stack.Screen name="Search" component={SearchScreen} options={{ title: "" }} />
     </Stack.Navigator>
   );
 }

@@ -7,4 +7,6 @@ export type RootStackParamList = {
   FollowUps: { storytellerId: string; name: string };
   StorytellerSettings: { storytellerId: string };
   Portrait: { storytellerId: string; name: string };
+  Memoir: { storytellerId: string; name: string };
+  Search: { storytellerId: string; name: string };
 };

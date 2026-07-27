@@ -130,6 +130,18 @@ export function HomeScreen({ navigation }: Props) {
                 name: item.storyteller.name,
               })
             }
+            onOpenMemoir={() =>
+              navigation.navigate("Memoir", {
+                storytellerId: item.storyteller.id,
+                name: item.storyteller.name,
+              })
+            }
+            onOpenSearch={() =>
+              navigation.navigate("Search", {
+                storytellerId: item.storyteller.id,
+                name: item.storyteller.name,
+              })
+            }
           />
         </Entrance>
       )}
@@ -152,6 +164,8 @@ function Album({
   onOpenThreads,
   onOpenSettings,
   onOpenPortrait,
+  onOpenMemoir,
+  onOpenSearch,
 }: {
   shelf: Shelf;
   onOpenChapter: (chapterId: string) => void;
@@ -159,6 +173,8 @@ function Album({
   onOpenThreads: () => void;
   onOpenSettings: () => void;
   onOpenPortrait: () => void;
+  onOpenMemoir: () => void;
+  onOpenSearch: () => void;
 }) {
   const { storyteller, chapters, sessionCount, live } = shelf;
   // Chapters arrive as every version; reason about the latest version per
@@ -227,11 +243,26 @@ function Album({
           </Text>
         )}
         {visible.length > 0 && (
+          <PressableScale
+            accessibilityRole="button"
+            accessibilityLabel="Read the whole memoir"
+            onPress={onOpenMemoir}
+            style={styles.readBook}
+          >
+            <Text style={styles.readBookText}>Read the memoir</Text>
+            <Text style={styles.readBookArrow}>→</Text>
+          </PressableScale>
+        )}
+        {visible.length > 0 && (
           <Text style={styles.stats}>{countLine(visible.length, sessionCount)}</Text>
         )}
         <View style={styles.footer}>
           <PressableScale accessibilityRole="button" onPress={onOpenPortrait}>
             <Text style={styles.footerLink}>Portrait</Text>
+          </PressableScale>
+          <Text style={styles.footerDot}>·</Text>
+          <PressableScale accessibilityRole="button" onPress={onOpenSearch}>
+            <Text style={styles.footerLink}>Search</Text>
           </PressableScale>
           <Text style={styles.footerDot}>·</Text>
           <PressableScale accessibilityRole="button" onPress={onOpenSessions}>
@@ -323,6 +354,25 @@ const styles = StyleSheet.create({
     color: color.inkSoft,
     paddingTop: space(2),
   },
+  // The book's front door: opening any album's chapters as one continuous read.
+  readBook: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: space(2),
+    marginTop: space(3),
+    paddingVertical: space(3),
+    borderWidth: 1,
+    borderColor: color.gold,
+    borderRadius: 10,
+  },
+  readBookText: {
+    fontFamily: font.bodyBold,
+    fontSize: 14,
+    letterSpacing: 0.4,
+    color: color.gold,
+  },
+  readBookArrow: { fontFamily: font.body, fontSize: 15, color: color.gold },
   pages: {
     backgroundColor: color.paper,
     borderBottomLeftRadius: radius.cover,
@@ -344,6 +394,8 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: "row",
     alignItems: "center",
+    flexWrap: "wrap",
+    rowGap: space(2),
     gap: space(2),
     paddingVertical: space(3),
     borderTopWidth: 1,

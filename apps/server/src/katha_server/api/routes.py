@@ -3,15 +3,20 @@ from katha_core.models import (
     ApiToken,
     CallSession,
     Chapter,
+    ChapterStatus,
     ConsentStatus,
+    Entity,
+    EntityKind,
+    Fact,
     Family,
     FollowUp,
     FollowUpStatus,
     Keeper,
+    Speaker,
     Storyteller,
     TranscriptSegment,
 )
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from . import schemas
 from .deps import CurrentKeeper, Db
@@ -211,14 +216,114 @@ async def get_portrait(
     )
 
 
-@router.get("/chapters/{chapter_id}", response_model=schemas.ChapterDetailOut, tags=["chapters"])
-async def get_chapter(chapter_id: str, db: Db, keeper: CurrentKeeper) -> schemas.ChapterDetailOut:
-    ch = await db.get(Chapter, chapter_id)
-    if ch is None:
-        raise HTTPException(status_code=404, detail="chapter not found")
-    await _owned_storyteller(db, keeper, ch.storyteller_id)
+# People first — they carry the most; then the places, seasons, and things.
+_LIFE_GROUPS: list[tuple[EntityKind, str]] = [
+    (EntityKind.PERSON, "The people they carried"),
+    (EntityKind.PLACE, "The places"),
+    (EntityKind.ERA, "The seasons of a life"),
+    (EntityKind.OBJECT, "The things they kept"),
+    (EntityKind.EVENT, "The moments"),
+]
 
-    # Resolve sentence anchors to playable audio spans.
+
+@router.get(
+    "/storytellers/{storyteller_id}/life",
+    response_model=schemas.LifeOut,
+    tags=["storytellers"],
+)
+async def get_life(storyteller_id: str, db: Db, keeper: CurrentKeeper) -> schemas.LifeOut:
+    """The living portrait — the people, places, and things a life kept
+    returning to, each carrying the words the storyteller actually spoke about
+    them. Assembled from the life graph (entities + provenance-anchored facts),
+    never invented."""
+    st = await _owned_storyteller(db, keeper, storyteller_id)
+
+    entities = list(
+        await db.scalars(select(Entity).where(Entity.storyteller_id == storyteller_id))
+    )
+    facts = list(
+        await db.scalars(
+            select(Fact)
+            .where(Fact.storyteller_id == storyteller_id, Fact.entity_id.is_not(None))
+            .order_by(Fact.created_at)
+        )
+    )
+
+    # Resolve each fact's provenance to the segment the storyteller actually spoke.
+    seg_ids = {f.segment_ids[0] for f in facts if f.segment_ids}
+    segs = {
+        s.id: s
+        for s in (
+            await db.scalars(
+                select(TranscriptSegment).where(TranscriptSegment.id.in_(seg_ids))
+            )
+        ).all()
+    } if seg_ids else {}
+    sessions = {
+        c.id: c
+        for c in (
+            await db.scalars(
+                select(CallSession).where(
+                    CallSession.id.in_({s.session_id for s in segs.values()})
+                )
+            )
+        ).all()
+    } if segs else {}
+
+    # Group her words by who/what they were about. Several facts can come from
+    # one utterance — keep each utterance once per entity, in the order spoken.
+    moments: dict[str, list[schemas.LifeMoment]] = {}
+    seen: dict[str, set[str]] = {}
+    for f in facts:
+        if not f.segment_ids:
+            continue
+        seg = segs.get(f.segment_ids[0])
+        if seg is None or seg.speaker != Speaker.STORYTELLER:
+            continue
+        if seg.id in seen.setdefault(f.entity_id, set()):
+            continue
+        seen[f.entity_id].add(seg.id)
+        sess = sessions.get(seg.session_id)
+        anchor = (
+            schemas.AnchorOut(
+                segment_id=seg.id,
+                session_id=seg.session_id,
+                audio_key=sess.audio_key,
+                t_start_ms=seg.t_start_ms,
+                t_end_ms=seg.t_end_ms,
+            )
+            if sess and sess.audio_key
+            else None
+        )
+        moments.setdefault(f.entity_id, []).append(
+            schemas.LifeMoment(quote=seg.text, anchor=anchor)
+        )
+
+    groups: list[schemas.LifeGroup] = []
+    for kind, label in _LIFE_GROUPS:
+        ents = [e for e in entities if e.kind == kind]
+        if not ents:
+            continue
+        groups.append(
+            schemas.LifeGroup(
+                kind=kind.value,
+                label=label,
+                entities=[
+                    schemas.LifeEntity(
+                        name=e.canonical_name, summary=e.summary, moments=moments.get(e.id, [])
+                    )
+                    for e in ents
+                ],
+            )
+        )
+
+    return schemas.LifeOut(name=st.name, groups=groups)
+
+
+async def _resolve_paragraphs(db: Db, ch: Chapter) -> list[list[schemas.SentenceOut]]:
+    """Resolve a chapter's sentence anchors to playable audio spans. Shared by
+    the single-chapter reader and the whole-memoir view so both render the same
+    gold voice-threads from one source of truth."""
     segment_ids = {
         sid for para in ch.body for sent in para for sid in sent.get("segment_ids", [])
     }
@@ -256,18 +361,140 @@ async def get_chapter(chapter_id: str, db: Db, keeper: CurrentKeeper) -> schemas
             )
         return out
 
+    return [
+        [
+            schemas.SentenceOut(
+                text=sent["text"], bridge=sent.get("bridge", False), anchors=anchors_for(sent)
+            )
+            for sent in para
+        ]
+        for para in ch.body
+    ]
+
+
+@router.get("/chapters/{chapter_id}", response_model=schemas.ChapterDetailOut, tags=["chapters"])
+async def get_chapter(chapter_id: str, db: Db, keeper: CurrentKeeper) -> schemas.ChapterDetailOut:
+    ch = await db.get(Chapter, chapter_id)
+    if ch is None:
+        raise HTTPException(status_code=404, detail="chapter not found")
+    await _owned_storyteller(db, keeper, ch.storyteller_id)
     return schemas.ChapterDetailOut(
         **schemas.ChapterOut.model_validate(ch).model_dump(),
-        paragraphs=[
-            [
-                schemas.SentenceOut(
-                    text=sent["text"], bridge=sent.get("bridge", False), anchors=anchors_for(sent)
-                )
-                for sent in para
-            ]
-            for para in ch.body
-        ],
+        paragraphs=await _resolve_paragraphs(db, ch),
     )
+
+
+async def _visible_chapters(db: Db, storyteller_id: str) -> list[Chapter]:
+    """The family-visible book: verified or published chapters, latest version
+    per ordinal, in reading order. The fidelity gate lives here — drafts never
+    reach the family, in the book or in search."""
+    rows = list(
+        await db.scalars(
+            select(Chapter)
+            .where(
+                Chapter.storyteller_id == storyteller_id,
+                Chapter.status.in_((ChapterStatus.VERIFIED, ChapterStatus.PUBLISHED)),
+            )
+            .order_by(Chapter.ordinal, Chapter.version.desc())
+        )
+    )
+    # Rows arrive version-desc within each ordinal; keep the first (latest) seen.
+    latest: dict[int, Chapter] = {}
+    for ch in rows:
+        latest.setdefault(ch.ordinal, ch)
+    return [latest[o] for o in sorted(latest)]
+
+
+def _snippet(text: str, needle: str, width: int = 120) -> str:
+    """A readable window around the first match, with ellipses where clipped."""
+    lo = text.lower().find(needle)
+    if lo < 0:
+        return text[:width].strip()
+    start = max(0, lo - width // 3)
+    end = min(len(text), lo + len(needle) + (2 * width) // 3)
+    return ("…" if start > 0 else "") + text[start:end].strip() + ("…" if end < len(text) else "")
+
+
+@router.get(
+    "/storytellers/{storyteller_id}/memoir",
+    response_model=schemas.MemoirOut,
+    tags=["chapters"],
+)
+async def get_memoir(
+    storyteller_id: str, db: Db, keeper: CurrentKeeper
+) -> schemas.MemoirOut:
+    """The whole book. Every family-visible chapter (verified or published),
+    latest version per ordinal, assembled in order into one continuous read."""
+    st = await _owned_storyteller(db, keeper, storyteller_id)
+    chapters = [
+        schemas.MemoirChapterOut(
+            ordinal=ch.ordinal,
+            title=ch.title,
+            paragraphs=await _resolve_paragraphs(db, ch),
+        )
+        for ch in await _visible_chapters(db, storyteller_id)
+    ]
+    return schemas.MemoirOut(name=st.name, chapters=chapters)
+
+
+@router.get(
+    "/storytellers/{storyteller_id}/search",
+    response_model=schemas.SearchOut,
+    tags=["chapters"],
+)
+async def search_storyteller(
+    storyteller_id: str, db: Db, keeper: CurrentKeeper, q: str = ""
+) -> schemas.SearchOut:
+    """Find a story or a moment. Searches the written book (family-visible
+    chapters) and the storyteller's own recorded words (their transcript
+    turns) — never the interviewer's lines, never unverified drafts."""
+    await _owned_storyteller(db, keeper, storyteller_id)
+    needle = q.strip().lower()
+    if len(needle) < 2:
+        return schemas.SearchOut(query=q, chapters=[], moments=[])
+
+    # The book: the first matching sentence (or the title) becomes the snippet.
+    chapter_hits: list[schemas.SearchChapterHit] = []
+    for ch in await _visible_chapters(db, storyteller_id):
+        match = next(
+            (sent["text"] for para in ch.body for sent in para if needle in sent["text"].lower()),
+            None,
+        )
+        if match is None and needle in ch.title.lower():
+            match = ch.title
+        if match is not None:
+            chapter_hits.append(
+                schemas.SearchChapterHit(
+                    chapter_id=ch.id,
+                    ordinal=ch.ordinal,
+                    title=ch.title,
+                    snippet=_snippet(match, needle),
+                )
+            )
+
+    # Their own words: transcript turns the storyteller actually spoke.
+    escaped = needle.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    seg_rows = (
+        await db.execute(
+            select(TranscriptSegment, CallSession.started_at)
+            .join(CallSession, TranscriptSegment.session_id == CallSession.id)
+            .where(
+                CallSession.storyteller_id == storyteller_id,
+                TranscriptSegment.speaker == Speaker.STORYTELLER,
+                func.lower(TranscriptSegment.text).like(f"%{escaped}%", escape="\\"),
+            )
+            .order_by(CallSession.created_at.desc(), TranscriptSegment.idx)
+            .limit(20)
+        )
+    ).all()
+    moment_hits = [
+        schemas.SearchMomentHit(
+            session_id=seg.session_id, started_at=started, snippet=_snippet(seg.text, needle)
+        )
+        for seg, started in seg_rows
+    ]
+
+    return schemas.SearchOut(query=q, chapters=chapter_hits, moments=moment_hits)
 
 
 # --- Audio --------------------------------------------------------------------
