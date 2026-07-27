@@ -99,7 +99,7 @@ export function AddStorytellerScreen({ navigation }: Props) {
         <Entrance order={1} style={{ gap: space(5) }}>
           <Field label="Their name" value={name} onChange={setName} placeholder="Rosa Almeida" />
           <Field
-            label="How should we address them on the call?"
+            label="What should we call them?"
             value={addressAs}
             onChange={setAddressAs}
             placeholder="Grandma Rosa"
@@ -145,8 +145,7 @@ export function AddStorytellerScreen({ navigation }: Props) {
 
         <Entrance order={4} style={{ gap: space(4) }}>
           <Text style={type.caption}>
-            Calls repeat weekly. On the first call we introduce ourselves and ask for
-            their blessing before anything is recorded — they can always say no.
+            Calls repeat weekly. On the first, we ask for their blessing before recording anything.
           </Text>
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <PressableScale
