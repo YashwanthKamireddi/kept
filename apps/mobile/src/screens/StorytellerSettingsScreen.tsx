@@ -111,6 +111,22 @@ export function StorytellerSettingsScreen({ route, navigation }: Props) {
         </Entrance>
 
         <Entrance order={1} style={styles.block}>
+          <Text style={type.label}>In this album</Text>
+          <NavRow
+            label="Open threads"
+            onPress={() =>
+              navigation.navigate("FollowUps", { storytellerId: st.id, name: st.name })
+            }
+          />
+          <NavRow
+            label="Search stories"
+            onPress={() =>
+              navigation.navigate("Search", { storytellerId: st.id, name: st.name })
+            }
+          />
+        </Entrance>
+
+        <Entrance order={2} style={styles.block}>
           <Text style={type.label}>Recording</Text>
           <Text style={[type.body, { color: color.inkSoft }]}>{consentLine(st.consent)}</Text>
           {action && (
@@ -125,7 +141,7 @@ export function StorytellerSettingsScreen({ route, navigation }: Props) {
           )}
         </Entrance>
 
-        <Entrance order={2} style={styles.block}>
+        <Entrance order={3} style={styles.block}>
           <Text style={type.label}>Calls</Text>
           <Text style={[type.body, { color: color.inkSoft }]}>
             Every {st.cadence_days} days, in {languageName(st.language)}.
@@ -135,7 +151,7 @@ export function StorytellerSettingsScreen({ route, navigation }: Props) {
           )}
         </Entrance>
 
-        <Entrance order={3} style={[styles.block, styles.danger]}>
+        <Entrance order={4} style={[styles.block, styles.danger]}>
           <Text style={type.label}>Erase</Text>
           <Text style={[type.caption, { color: color.inkSoft }]}>
             Delete {st.name}'s entire album and every recording, forever. This is
@@ -155,9 +171,28 @@ export function StorytellerSettingsScreen({ route, navigation }: Props) {
   );
 }
 
+function NavRow({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <PressableScale accessibilityRole="button" onPress={onPress} style={styles.navRow}>
+      <Text style={styles.navRowText}>{label}</Text>
+      <Text style={styles.navRowArrow}>→</Text>
+    </PressableScale>
+  );
+}
+
 const styles = StyleSheet.create({
   scroll: { padding: space(6), gap: space(7), paddingBottom: space(12) },
   block: { gap: space(2) },
+  navRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: space(3),
+    borderBottomWidth: 1,
+    borderBottomColor: color.hairline,
+  },
+  navRowText: { fontFamily: font.body, fontSize: 17, color: color.ink },
+  navRowArrow: { fontFamily: font.body, fontSize: 16, color: color.gold },
   nextCall: { fontFamily: font.bodyMedium, fontSize: 14, color: color.gold },
   secondary: {
     alignSelf: "flex-start",

@@ -7,7 +7,7 @@ import type { RootStackParamList } from "../navigation";
 import { color, font, radius, shadow, space, type } from "../design/tokens";
 import { Entrance, DrawnRule, PressableScale, useBreath } from "../design/motion";
 import { useApp } from "../state";
-import { consentLine, countLine, greeting, nextCallLine, strings, todayLine } from "../design/copy";
+import { consentLine, greeting, nextCallLine, strings, todayLine } from "../design/copy";
 import { Page } from "../design/materials";
 import type { Chapter, Storyteller } from "../api/client";
 
@@ -113,12 +113,6 @@ export function HomeScreen({ navigation }: Props) {
                 name: item.storyteller.name,
               })
             }
-            onOpenThreads={() =>
-              navigation.navigate("FollowUps", {
-                storytellerId: item.storyteller.id,
-                name: item.storyteller.name,
-              })
-            }
             onOpenSettings={() =>
               navigation.navigate("StorytellerSettings", {
                 storytellerId: item.storyteller.id,
@@ -132,12 +126,6 @@ export function HomeScreen({ navigation }: Props) {
             }
             onOpenMemoir={() =>
               navigation.navigate("Memoir", {
-                storytellerId: item.storyteller.id,
-                name: item.storyteller.name,
-              })
-            }
-            onOpenSearch={() =>
-              navigation.navigate("Search", {
                 storytellerId: item.storyteller.id,
                 name: item.storyteller.name,
               })
@@ -161,22 +149,18 @@ function Album({
   shelf,
   onOpenChapter,
   onOpenSessions,
-  onOpenThreads,
   onOpenSettings,
   onOpenPortrait,
   onOpenMemoir,
-  onOpenSearch,
 }: {
   shelf: Shelf;
   onOpenChapter: (chapterId: string) => void;
   onOpenSessions: () => void;
-  onOpenThreads: () => void;
   onOpenSettings: () => void;
   onOpenPortrait: () => void;
   onOpenMemoir: () => void;
-  onOpenSearch: () => void;
 }) {
-  const { storyteller, chapters, sessionCount, live } = shelf;
+  const { storyteller, chapters, live } = shelf;
   // Chapters arrive as every version; reason about the latest version per
   // ordinal so a superseded draft doesn't linger as "being checked".
   const latestByOrdinal = new Map<number, Chapter>();
@@ -253,24 +237,13 @@ function Album({
             <Text style={styles.readBookArrow}>→</Text>
           </PressableScale>
         )}
-        {visible.length > 0 && (
-          <Text style={styles.stats}>{countLine(visible.length, sessionCount)}</Text>
-        )}
         <View style={styles.footer}>
           <PressableScale accessibilityRole="button" onPress={onOpenPortrait}>
             <Text style={styles.footerLink}>Portrait</Text>
           </PressableScale>
           <Text style={styles.footerDot}>·</Text>
-          <PressableScale accessibilityRole="button" onPress={onOpenSearch}>
-            <Text style={styles.footerLink}>Search</Text>
-          </PressableScale>
-          <Text style={styles.footerDot}>·</Text>
           <PressableScale accessibilityRole="button" onPress={onOpenSessions}>
             <Text style={styles.footerLink}>Calls</Text>
-          </PressableScale>
-          <Text style={styles.footerDot}>·</Text>
-          <PressableScale accessibilityRole="button" onPress={onOpenThreads}>
-            <Text style={styles.footerLink}>Threads</Text>
           </PressableScale>
           <Text style={styles.footerDot}>·</Text>
           <PressableScale accessibilityRole="button" onPress={onOpenSettings}>
