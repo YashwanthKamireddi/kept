@@ -32,10 +32,10 @@ function consentLine(consent: ConsentStatus): string {
     case "granted":
       return "Recording with their blessing.";
     case "pending":
-      return "Awaiting the first call, where we ask for their blessing.";
+      return "We'll ask for their blessing on the first call.";
     case "declined":
     case "revoked":
-      return "Paused. No calls will be made until you resume.";
+      return "Paused — no calls until you resume.";
   }
 }
 
@@ -154,8 +154,7 @@ export function StorytellerSettingsScreen({ route, navigation }: Props) {
         <Entrance order={4} style={[styles.block, styles.danger]}>
           <Text style={type.label}>Erase</Text>
           <Text style={[type.caption, { color: color.inkSoft }]}>
-            Delete {st.name}'s entire album and every recording, forever. This is
-            what "the family owns it" means — you can take it all back.
+            Delete {st.name}'s album and every recording, forever. This can't be undone.
           </Text>
           <PressableScale
             accessibilityRole="button"
