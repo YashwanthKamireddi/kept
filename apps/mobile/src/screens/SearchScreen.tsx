@@ -55,18 +55,11 @@ export function SearchScreen({ route, navigation }: Props) {
         </Entrance>
         <Field label="A word, a person, a place" value={q} onChange={setQ} />
 
-        {!typed && (
-          <Text style={[type.caption, styles.note]}>
-            Searches the written book and {name}'s own recorded words.
-          </Text>
-        )}
         {typed && searching && !results && (
           <Text style={[type.caption, styles.note]}>Looking…</Text>
         )}
         {empty && !searching && (
-          <Text style={[type.body, styles.note]}>
-            Nothing in {name}'s stories mentions “{q.trim()}” yet.
-          </Text>
+          <Text style={[type.body, styles.note]}>Nothing yet for “{q.trim()}”.</Text>
         )}
 
         {results && results.chapters.length > 0 && (

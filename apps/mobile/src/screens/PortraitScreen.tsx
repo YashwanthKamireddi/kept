@@ -48,8 +48,7 @@ export function PortraitScreen({ route }: Props) {
         {empty ? (
           <Entrance order={2} style={styles.emptyBlock}>
             <Text style={[type.body, { color: color.inkSoft, textAlign: "center" }]}>
-              Their portrait fills in as they share more stories — the people, places, and moments
-              that keep coming up, in the words they use for them.
+              Their portrait fills in as they share more stories.
             </Text>
           </Entrance>
         ) : (

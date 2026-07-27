@@ -82,8 +82,7 @@ export function MemoirScreen({ route }: Props) {
         {empty ? (
           <Entrance order={2} style={styles.emptyBlock}>
             <Text style={[type.body, { color: color.inkSoft, textAlign: "center" }]}>
-              The book fills in one chapter at a time. After their first call is verified as
-              faithful, it will begin here.
+              The book begins after their first call.
             </Text>
           </Entrance>
         ) : (
