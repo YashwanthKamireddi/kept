@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
+import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { color, font, space } from "../tokens";
 import { NATIVE_DRIVER } from "../motion";
 
 /**
- * The cassette bar: shown while the storyteller speaks. A gold thread shimmers
- * across the deck; the counter runs like a tape counter. Honest states only —
- * when a recording hasn't synced yet, it says so instead of pretending.
+ * The cassette. Kept keeps a voice, so the player is a tape: two reels that
+ * turn while they speak, gold tape strung between them, a hand-written label,
+ * and a Space-Mono counter. Honest states only — before a recording has
+ * synced, the reels rest and the counter reads --:--.
  */
 export function TapeBar({
   playing,
@@ -19,19 +20,26 @@ export function TapeBar({
   label: string;
   unavailable?: boolean;
 }) {
-  const shimmer = useRef(new Animated.Value(0)).current;
+  const spin = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (!playing) return;
+    if (!playing) {
+      spin.stopAnimation();
+      return;
+    }
     const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmer, { toValue: 1, duration: 900, useNativeDriver: NATIVE_DRIVER }),
-        Animated.timing(shimmer, { toValue: 0.35, duration: 900, useNativeDriver: NATIVE_DRIVER }),
-      ]),
+      Animated.timing(spin, {
+        toValue: 1,
+        duration: 2600,
+        easing: Easing.linear,
+        useNativeDriver: NATIVE_DRIVER,
+      }),
     );
     loop.start();
     return () => loop.stop();
-  }, [playing, shimmer]);
+  }, [playing, spin]);
+
+  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
 
   const seconds = Math.floor(positionMs / 1000);
   const counter = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(
@@ -40,33 +48,79 @@ export function TapeBar({
 
   return (
     <View style={styles.deck}>
-      <Animated.View
-        style={[styles.thread, { opacity: playing ? shimmer : 0.25 }]}
-      />
-      <View style={styles.row}>
+      <View style={styles.shell}>
+        <View style={styles.labelStrip}>
+          <Text style={styles.written} numberOfLines={1}>
+            {unavailable ? "not yet synced" : label}
+          </Text>
+        </View>
+        <View style={styles.window}>
+          <Reel rotate={rotate} />
+          <View style={styles.tape} />
+          <Reel rotate={rotate} />
+        </View>
         <Text style={styles.counter}>{unavailable ? "--:--" : counter}</Text>
-        <Text style={styles.label} numberOfLines={1}>
-          {unavailable ? "This recording hasn't synced yet" : label}
-        </Text>
       </View>
     </View>
   );
 }
 
+/** One spool: a foil ring with a hub and six teeth, turned as one piece. */
+function Reel({ rotate }: { rotate: Animated.AnimatedInterpolation<string> }) {
+  return (
+    <Animated.View style={[styles.reel, { transform: [{ rotate }] }]}>
+      <View style={styles.spoke} />
+      <View style={[styles.spoke, { transform: [{ rotate: "60deg" }] }]} />
+      <View style={[styles.spoke, { transform: [{ rotate: "120deg" }] }]} />
+      <View style={styles.hub} />
+    </Animated.View>
+  );
+}
+
+const REEL = 34;
+
 const styles = StyleSheet.create({
   deck: {
     backgroundColor: color.ink,
     paddingHorizontal: space(5),
-    paddingTop: space(3),
+    paddingTop: space(4),
     paddingBottom: space(7),
   },
-  thread: { height: 2, backgroundColor: color.gold, marginBottom: space(3) },
-  row: { flexDirection: "row", alignItems: "center", gap: space(3) },
+  shell: {
+    backgroundColor: color.stageRaised,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
+    paddingHorizontal: space(4),
+    paddingVertical: space(3),
+  },
+  labelStrip: {
+    backgroundColor: color.paper,
+    borderRadius: 4,
+    paddingHorizontal: space(3),
+    paddingVertical: space(1),
+    marginBottom: space(3),
+  },
+  written: { fontFamily: font.quote, fontSize: 14, color: color.ink },
+  window: { flexDirection: "row", alignItems: "center", gap: space(3) },
+  reel: {
+    width: REEL,
+    height: REEL,
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: color.foil,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  spoke: { position: "absolute", width: 2, height: REEL - 6, backgroundColor: "rgba(201,162,75,0.55)" },
+  hub: { width: 9, height: 9, borderRadius: 999, backgroundColor: color.foil },
+  tape: { flex: 1, height: 2, backgroundColor: color.gold },
   counter: {
     fontFamily: font.mono,
-    fontSize: 14,
-    color: color.gold,
+    fontSize: 13,
+    color: color.foil,
     fontVariant: ["tabular-nums"],
+    alignSelf: "flex-end",
+    marginTop: space(2),
   },
-  label: { fontFamily: font.body, fontSize: 14, color: color.paper, flex: 1 },
 });
