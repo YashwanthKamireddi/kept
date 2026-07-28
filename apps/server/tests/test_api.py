@@ -349,6 +349,44 @@ def test_life_portrait_groups_entities_with_their_own_words(client):
     assert client.get(f"/storytellers/{sid}/life", headers=_auth(other)).status_code == 404
 
 
+def test_new_endpoints_handle_empty_and_missing(client):
+    token = _signup(client)["token"]
+    sid = client.post(
+        "/storytellers",
+        headers=_auth(token),
+        json={"name": "New", "address_as": "New", "phone_e164": "+15550001111"},
+    ).json()["id"]
+
+    # A storyteller with no data yet returns honest empty shapes, never errors.
+    assert client.get(f"/storytellers/{sid}/memoir", headers=_auth(token)).json() == {
+        "name": "New",
+        "chapters": [],
+    }
+    assert client.get(f"/storytellers/{sid}/life", headers=_auth(token)).json() == {
+        "name": "New",
+        "groups": [],
+    }
+    hit = client.get(
+        f"/storytellers/{sid}/search", headers=_auth(token), params={"q": "anything"}
+    ).json()
+    assert hit["chapters"] == [] and hit["moments"] == []
+    # A whitespace / too-short query is a no-op, not a scan.
+    assert (
+        client.get(
+            f"/storytellers/{sid}/search", headers=_auth(token), params={"q": "  "}
+        ).json()["chapters"]
+        == []
+    )
+
+    # A storyteller that doesn't exist is a 404 on every new route.
+    for path in (
+        "/storytellers/bogus/memoir",
+        "/storytellers/bogus/life",
+        "/storytellers/bogus/search?q=x",
+    ):
+        assert client.get(path, headers=_auth(token)).status_code == 404
+
+
 def test_search_finds_stories_and_moments_but_not_drafts_or_interviewer(client):
     token = _signup(client)["token"]
     sid = client.post(
