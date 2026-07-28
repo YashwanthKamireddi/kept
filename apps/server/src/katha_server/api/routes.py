@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from katha_core.models import (
     ApiToken,
     CallSession,
@@ -512,6 +513,21 @@ async def resolve_audio(audio_key: str, db: Db, keeper: CurrentKeeper) -> dict:
     if not storage.configured():
         raise HTTPException(status_code=503, detail="audio storage not configured")
     return {"url": storage.presigned_audio_url(audio_key), "expires_in": 600}
+
+
+@router.get("/audio-file/{audio_key:path}", tags=["audio"])
+async def stream_local_audio(audio_key: str, exp: int = 0, sig: str = "") -> FileResponse:
+    """Stream a recording from the local dev audio dir. Authorised by the
+    short-lived HMAC signature minted in /audio (not the bearer token), so the
+    audio player can fetch it directly — exactly as it would a presigned R2 URL."""
+    from .. import storage  # noqa: PLC0415
+
+    if not storage.verify_local(audio_key, exp, sig):
+        raise HTTPException(status_code=403, detail="invalid or expired link")
+    path = storage.local_audio_path(audio_key)
+    if path is None:
+        raise HTTPException(status_code=404, detail="recording not found")
+    return FileResponse(str(path))
 
 
 # --- Follow-ups ---------------------------------------------------------------

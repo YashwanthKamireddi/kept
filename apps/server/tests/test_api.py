@@ -461,3 +461,47 @@ def test_search_finds_stories_and_moments_but_not_drafts_or_interviewer(client):
         ).status_code
         == 404
     )
+
+
+def test_local_audio_backend_serves_real_files_only(tmp_path, monkeypatch):
+    import time
+    from urllib.parse import parse_qs, urlparse
+
+    audio_dir = tmp_path / "recordings"
+    audio_dir.mkdir()
+    (audio_dir / "clip.ogg").write_bytes(b"OggS-real-audio-bytes")
+
+    monkeypatch.setenv("DATABASE_URL", f"sqlite+aiosqlite:///{tmp_path}/a.db")
+    monkeypatch.setenv("KATHA_ENV", "dev")
+    monkeypatch.setenv("LOCAL_AUDIO_DIR", str(audio_dir))
+    monkeypatch.setenv("AUDIO_SIGN_SECRET", "test-secret")
+    settings.cache_clear()
+    db.reset()
+    from katha_server import storage
+
+    storage.reset()
+    assert storage.configured() is True  # local dir is enough, no R2 needed
+
+    url = storage.presigned_audio_url("clip.ogg")
+    parsed = urlparse(url)
+    assert parsed.path == "/audio-file/clip.ogg"
+    q = parse_qs(parsed.query)
+    exp, sig = int(q["exp"][0]), q["sig"][0]
+    assert storage.verify_local("clip.ogg", exp, sig) is True
+    assert storage.verify_local("clip.ogg", exp, "tampered") is False  # bad signature
+    assert storage.verify_local("clip.ogg", int(time.time()) - 1, sig) is False  # expired
+    assert storage.local_audio_path("../secret") is None  # path traversal refused
+
+    from katha_server.main import app
+
+    with TestClient(app) as c:
+        ok = c.get(f"/audio-file/clip.ogg?exp={exp}&sig={sig}")
+        assert ok.status_code == 200
+        assert ok.content == b"OggS-real-audio-bytes"
+        assert c.get(f"/audio-file/clip.ogg?exp={exp}&sig=bad").status_code == 403
+        good_sig_missing = storage._sign("missing.ogg", exp)
+        assert c.get(f"/audio-file/missing.ogg?exp={exp}&sig={good_sig_missing}").status_code == 404
+
+    settings.cache_clear()
+    db.reset()
+    storage.reset()

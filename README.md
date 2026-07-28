@@ -184,7 +184,10 @@ pipeline for free on a Claude subscription.
 
 **Gated on external accounts (bring your own):**
 - Real **phone** calls — a SIP trunk (`SIP_TRUNK_ID`, e.g. Twilio). `scripts/setup-sip.sh` wires it.
-- Cloud **audio archive** — object storage (Cloudflare R2) for recording playback.
+- **Voice playback** — real call recordings, served from Cloudflare **R2** or, in dev, a local
+  `LOCAL_AUDIO_DIR` of recordings (signed links, no cloud needed). With recordings present the
+  in-app cassette plays and its reels turn; without them the player honestly reads *"not yet
+  synced."* It never invents audio.
 
 ---
 

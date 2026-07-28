@@ -22,6 +22,13 @@ class Settings(BaseSettings):
     r2_secret_access_key: str = ""
     r2_bucket: str = "katha-audio"
 
+    # Local audio backend (dev): point at a directory of real recordings and
+    # the API serves them via short-lived HMAC-signed links — no R2 needed.
+    # Never a substitute for real recordings; it just avoids the cloud in dev.
+    local_audio_dir: str = ""
+    public_base_url: str = "http://localhost:8000"
+    audio_sign_secret: str = "dev-local-audio"
+
     # Interviewer brain. Opus-tier: warmth + judgment are the product.
     interviewer_model: str = "claude-opus-4-8"
     # Cheap fast model for pipeline classification/verification passes.
