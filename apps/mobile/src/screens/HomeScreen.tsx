@@ -180,6 +180,15 @@ function Album({
         <Text style={styles.monogram} pointerEvents="none">
           {storyteller.name.trim().charAt(0).toUpperCase()}
         </Text>
+        {/* Light settling on leather, and a line of gold tooling framing it. */}
+        <LinearGradient
+          colors={["rgba(255,255,255,0.06)", "transparent"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.sheen}
+          pointerEvents="none"
+        />
+        <View style={styles.coverFrame} pointerEvents="none" />
         <View style={styles.spine} />
         <View style={{ flex: 1, gap: space(1) }}>
           <Text style={styles.coverLabel}>
@@ -292,6 +301,18 @@ const styles = StyleSheet.create({
     padding: space(5),
     paddingVertical: space(6),
     overflow: "hidden",
+  },
+  sheen: { position: "absolute", top: 0, left: 0, right: 0, height: "50%" },
+  // A line of gold tooling inset from the edge, like a bound leather album.
+  coverFrame: {
+    position: "absolute",
+    top: space(2),
+    left: space(2),
+    right: space(2),
+    bottom: space(2),
+    borderWidth: 1,
+    borderColor: "rgba(201,162,75,0.28)",
+    borderRadius: 6,
   },
   spine: { width: 3, borderRadius: 2, backgroundColor: color.foil, opacity: 0.9 },
   monogram: {
