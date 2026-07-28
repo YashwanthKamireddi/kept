@@ -73,22 +73,22 @@ a go-to-market wedge, isolated to provider config — never the product's identi
 | The album | A chapter | The conversation |
 |:---:|:---:|:---:|
 | <img src="docs/showcase/02-home.png" width="230"/> | <img src="docs/showcase/03-chapter.png" width="230"/> | <img src="docs/showcase/05-threads.png" width="230"/> |
-| Each storyteller is a monogrammed album; the greeting is the masthead; a glass bottom-nav ties it together. | A drop-cap opens the chapter; gold-underlined sentences carry the real recorded voice. | "Ask them something" — the family plants questions that flow into the next real call. |
+| Each storyteller is a gold-tooled, monogrammed album; the greeting is a letterpress masthead; an ink dock ties it together. | A drop-cap opens the chapter; gold-underlined sentences carry the real recorded voice. | "Ask them something" — the family plants questions that flow into the next real call. |
 
 | Calls | Manage | Add a storyteller |
 |:---:|:---:|:---:|
 | <img src="docs/showcase/04-calls.png" width="230"/> | <img src="docs/showcase/06-manage.png" width="230"/> | <img src="docs/showcase/08-add.png" width="230"/> |
-| A timeline of every conversation, with honest states. | Consent, cadence, and a one-tap "erase everything." | Universal — any name, any language, any voice. |
+| Every recorded conversation is a cassette, dated and timed; unrecorded calls stay honest quiet rows. | Consent, cadence, and a one-tap "erase everything." | Universal — any name, any language, any voice. |
 
 | Portrait | You | Arrival |
 |:---:|:---:|:---:|
 | <img src="docs/showcase/09-portrait.png" width="230"/> | <img src="docs/showcase/07-account.png" width="230"/> | <img src="docs/showcase/01-signin.png" width="230"/> |
 | Who they are — the people and places of a life, each carrying the words they actually spoke. | The keeper's account, kept simple. | Opening the album, in lamplight. |
 
-| The whole memoir | Search |
-|:---:|:---:|
-| <img src="docs/showcase/10-memoir.png" width="230"/> | <img src="docs/showcase/11-search.png" width="230"/> |
-| The book read end to end — each chapter opens with a drop cap; the recorded sentences keep their gold thread. | Find a story or a moment across the written book and the storyteller's own recorded words. |
+| The whole memoir | Search | In their voice |
+|:---:|:---:|:---:|
+| <img src="docs/showcase/10-memoir.png" width="230"/> | <img src="docs/showcase/11-search.png" width="230"/> | <img src="docs/showcase/12-cassette.png" width="230"/> |
+| The book read end to end — each chapter opens with a drop cap; the recorded sentences keep their gold thread. | Find a story or a moment across the written book and the storyteller's own recorded words. | Tap any gold-threaded line and it plays back on a cassette deck, in the storyteller's real voice. |
 
 </div>
 
