@@ -6,12 +6,13 @@ import type { RootStackParamList } from "../navigation";
 import { color, font, space, type } from "../design/tokens";
 import { Entrance, PressableScale } from "../design/motion";
 import { useApp } from "../state";
-import { sessionStatusLine, sessionSubLine } from "../design/copy";
+import { fmtDate, sessionStatusLine } from "../design/copy";
 import { Page } from "../design/materials";
 import type { Session } from "../api/client";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Sessions">;
 
+// A call becomes a tape only if it actually produced a conversation.
 const readable = (s: Session) => ["completed", "dropped"].includes(s.status);
 
 export function SessionsScreen({ route, navigation }: Props) {
@@ -50,9 +51,7 @@ export function SessionsScreen({ route, navigation }: Props) {
         ListHeaderComponent={
           <Entrance order={0} style={styles.header}>
             <Text style={type.sectionTitle}>Conversations</Text>
-            <Text style={[type.caption, { color: color.inkSoft }]}>
-              with {route.params.name}
-            </Text>
+            <Text style={[type.caption, { color: color.inkSoft }]}>with {route.params.name}</Text>
             {sessions.length > 0 && (
               <View style={styles.stats}>
                 <Stat value={String(sessions.length)} label={sessions.length === 1 ? "call" : "calls"} />
@@ -77,15 +76,14 @@ export function SessionsScreen({ route, navigation }: Props) {
         }
         renderItem={({ item, index }) => (
           <Entrance order={Math.min(index + 1, 6)}>
-            <TimelineRow
-              session={item}
-              isFirst={index === 0}
-              isLast={index === sessions.length - 1}
-              onPress={() =>
-                readable(item) &&
-                navigation.navigate("Transcript", { sessionId: item.id })
-              }
-            />
+            {readable(item) ? (
+              <CassetteCard
+                session={item}
+                onPress={() => navigation.navigate("Transcript", { sessionId: item.id })}
+              />
+            ) : (
+              <QuietRow session={item} />
+            )}
           </Entrance>
         )}
       />
@@ -102,45 +100,59 @@ function Stat({ value, label }: { value: string; label: string }) {
   );
 }
 
-/** One call as a node on a vertical thread — the album's growing history. */
-function TimelineRow({
-  session,
-  isFirst,
-  isLast,
-  onPress,
-}: {
-  session: Session;
-  isFirst: boolean;
-  isLast: boolean;
-  onPress: () => void;
-}) {
-  const canRead = readable(session);
+/** A recorded conversation as a cassette resting on the page — the date hand
+ * labeled, its length on the counter. Tap it to read the transcript. */
+function CassetteCard({ session, onPress }: { session: Session; onPress: () => void }) {
+  const secs = session.duration_seconds || 0;
+  const counter =
+    secs > 0
+      ? `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`
+      : "--:--";
+  const date = fmtDate(session.started_at) || "A conversation";
   return (
-    <View style={styles.row}>
-      <View style={styles.rail}>
-        <View style={[styles.railSeg, isFirst && styles.railHidden]} />
-        <View style={[styles.dot, canRead ? styles.dotFilled : styles.dotHollow]} />
-        <View style={[styles.railSeg, styles.railGrow, isLast && styles.railHidden]} />
+    <PressableScale accessibilityRole="button" onPress={onPress} style={styles.cassette}>
+      <View style={styles.labelStrip}>
+        <Text style={styles.written} numberOfLines={1}>
+          {date}
+        </Text>
       </View>
-      <PressableScale
-        accessibilityRole={canRead ? "button" : undefined}
-        disabled={!canRead}
-        onPress={onPress}
-        style={styles.rowContent}
-      >
-        <Text style={type.body}>{sessionStatusLine(session)}</Text>
-        <Text style={type.caption}>{sessionSubLine(session)}</Text>
-      </PressableScale>
-      {canRead ? <Text style={styles.go}>→</Text> : null}
+      <View style={styles.window}>
+        <Reel />
+        <View style={styles.tape} />
+        <Reel />
+        <Text style={styles.counter}>{counter}</Text>
+      </View>
+    </PressableScale>
+  );
+}
+
+/** A call that left no recording — no tape to show, just an honest line. */
+function QuietRow({ session }: { session: Session }) {
+  return (
+    <View style={styles.quiet}>
+      <View style={styles.quietDot} />
+      <Text style={[type.caption, { flex: 1 }]}>{sessionStatusLine(session)}</Text>
     </View>
   );
 }
 
-const DOT = 12;
+const REEL = 30;
+
+/** A spool at rest: foil ring, six teeth, a hub. */
+function Reel() {
+  return (
+    <View style={styles.reel}>
+      <View style={styles.spoke} />
+      <View style={[styles.spoke, { transform: [{ rotate: "60deg" }] }]} />
+      <View style={[styles.spoke, { transform: [{ rotate: "120deg" }] }]} />
+      <View style={styles.hub} />
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
-  content: { padding: space(5), paddingBottom: space(12) },
-  header: { gap: space(1), paddingBottom: space(3) },
+  content: { padding: space(5), gap: space(4), paddingBottom: space(12) },
+  header: { gap: space(1), paddingBottom: space(2) },
   stats: { flexDirection: "row", alignItems: "center", gap: space(5), paddingTop: space(4) },
   stat: { gap: 2 },
   statValue: {
@@ -159,19 +171,58 @@ const styles = StyleSheet.create({
   },
   statDivider: { width: 1, height: 34, backgroundColor: color.hairline },
   empty: { paddingTop: space(10), alignItems: "center" },
-  row: { flexDirection: "row", alignItems: "stretch", gap: space(3) },
-  rail: { width: DOT, alignItems: "center" },
-  railSeg: { width: 2, height: space(3), backgroundColor: color.hairline },
-  railGrow: { flex: 1 },
-  railHidden: { backgroundColor: "transparent" },
-  dot: {
-    width: DOT,
-    height: DOT,
+
+  cassette: {
+    backgroundColor: color.stageRaised,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
+    paddingHorizontal: space(4),
+    paddingVertical: space(3),
+  },
+  labelStrip: {
+    backgroundColor: color.paper,
+    borderRadius: 4,
+    paddingHorizontal: space(3),
+    paddingVertical: space(1),
+    marginBottom: space(3),
+    alignSelf: "flex-start",
+    minWidth: 96,
+  },
+  written: { fontFamily: font.quote, fontSize: 14, color: color.ink },
+  window: { flexDirection: "row", alignItems: "center", gap: space(3) },
+  reel: {
+    width: REEL,
+    height: REEL,
     borderRadius: 999,
     borderWidth: 2,
+    borderColor: color.foil,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  dotFilled: { backgroundColor: color.gold, borderColor: color.gold },
-  dotHollow: { backgroundColor: color.paper, borderColor: color.hairline },
-  rowContent: { flex: 1, gap: 2, paddingBottom: space(5) },
-  go: { fontFamily: font.body, fontSize: 16, color: color.gold, paddingTop: space(3) },
+  spoke: { position: "absolute", width: 2, height: REEL - 6, backgroundColor: "rgba(201,162,75,0.55)" },
+  hub: { width: 8, height: 8, borderRadius: 999, backgroundColor: color.foil },
+  tape: { flex: 1, height: 2, backgroundColor: color.gold },
+  counter: {
+    fontFamily: font.mono,
+    fontSize: 13,
+    color: color.foil,
+    fontVariant: ["tabular-nums"],
+  },
+
+  quiet: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: space(3),
+    paddingVertical: space(2),
+    paddingHorizontal: space(1),
+  },
+  quietDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: color.hairline,
+    backgroundColor: color.paper,
+  },
 });
