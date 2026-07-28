@@ -76,7 +76,11 @@ export function HomeScreen({ navigation }: Props) {
       ListHeaderComponent={
         <Entrance order={0} style={styles.greeting}>
           <Text style={type.sectionTitle}>{greeting()}</Text>
-          <Text style={[type.caption, { color: color.inkSoft }]}>{todayLine()}</Text>
+          <View style={styles.masthead}>
+            <View style={styles.ruleA} />
+            <View style={styles.ruleB} />
+          </View>
+          <Text style={styles.dateline}>{todayLine()}</Text>
         </Entrance>
       }
       ListEmptyComponent={
@@ -274,7 +278,19 @@ const styles = StyleSheet.create({
     gap: space(6),
     paddingBottom: space(28),
   },
-  greeting: { gap: space(1), paddingBottom: space(2) },
+  greeting: { gap: space(2), paddingBottom: space(2) },
+  // A letterpress diary masthead: a double ink rule under the greeting.
+  masthead: { gap: 2, marginTop: space(1) },
+  ruleA: { height: 1.5, backgroundColor: color.inkSoft, opacity: 0.35 },
+  ruleB: { height: 1, backgroundColor: color.hairline },
+  dateline: {
+    fontFamily: font.bodyMedium,
+    fontSize: 11,
+    letterSpacing: 1.6,
+    textTransform: "uppercase",
+    color: color.inkSoft,
+    marginTop: space(1),
+  },
   empty: { alignItems: "center", gap: space(4), paddingTop: space(16) },
   emptyRule: { width: 56 },
   emptyCta: {
