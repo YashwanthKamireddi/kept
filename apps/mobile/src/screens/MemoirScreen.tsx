@@ -1,13 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation";
 import { color, font, space, type } from "../design/tokens";
-import { Entrance, DrawnRule } from "../design/motion";
+import { Entrance, DrawnRule, PressableScale } from "../design/motion";
 import { Page } from "../design/materials";
 import { strings } from "../design/copy";
+import { haptic } from "../design/haptics";
 import { useApp } from "../state";
 import type { Memoir, Sentence } from "../api/client";
+
+/** Assemble the whole book into plain text a family can keep — the real words,
+ * in order, nothing invented. */
+function memoirToText(m: Memoir): string {
+  const lines: string[] = [`The memoir of ${m.name}`, ""];
+  for (const c of m.chapters) {
+    lines.push(`Chapter ${c.ordinal} — ${c.title}`, "");
+    for (const para of c.paragraphs) {
+      lines.push(para.map((s) => s.text).join(" "), "");
+    }
+  }
+  lines.push("— Kept · every family has a storyteller");
+  return lines.join("\n");
+}
 import { VoiceSentence } from "../design/components/VoiceSentence";
 import { TapeBar } from "../design/components/TapeBar";
 import { Loading } from "../design/components/Loading";
@@ -28,9 +43,29 @@ export function MemoirScreen({ route }: Props) {
   const [memoir, setMemoir] = useState<Memoir | null>(null);
   const [roomOpen, setRoomOpen] = useState(false);
   const [keepsakeOpen, setKeepsakeOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const { span, select, playing, positionMs, unavailable } = useSpanPlayer(() =>
     setRoomOpen(false),
   );
+
+  const shareBook = async () => {
+    if (!memoir) return;
+    haptic.success();
+    const text = memoirToText(memoir);
+    try {
+      await Share.share({ title: `The memoir of ${memoir.name}`, message: text });
+    } catch {
+      // Web without a share sheet — keep it useful by copying the book instead.
+      const nav = (globalThis as { navigator?: { clipboard?: { writeText?: (s: string) => Promise<void> } } }).navigator;
+      try {
+        await nav?.clipboard?.writeText?.(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        /* nothing more we can honestly do */
+      }
+    }
+  };
 
   useEffect(() => {
     if (!client) return;
@@ -76,6 +111,16 @@ export function MemoirScreen({ route }: Props) {
               {memoir.chapters.length} chapter{memoir.chapters.length === 1 ? "" : "s"}, in their
               own words
             </Text>
+          )}
+          {!empty && (
+            <PressableScale
+              accessibilityRole="button"
+              accessibilityLabel="Share this book with family"
+              onPress={shareBook}
+              style={styles.shareBook}
+            >
+              <Text style={styles.shareBookText}>{copied ? "Copied to share" : "Share this book"}</Text>
+            </PressableScale>
           )}
         </Entrance>
 
@@ -154,6 +199,15 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: space(6), paddingTop: space(6), paddingBottom: space(16) },
   titlePage: { alignItems: "center", gap: space(2), paddingVertical: space(8) },
   titleName: { textAlign: "center" },
+  shareBook: {
+    marginTop: space(3),
+    borderWidth: 1,
+    borderColor: color.ink,
+    paddingHorizontal: space(6),
+    paddingVertical: space(3),
+    borderRadius: 10,
+  },
+  shareBookText: { fontFamily: font.bodyBold, fontSize: 14, color: color.ink },
   titleRule: { width: 56, marginVertical: space(2) },
   emptyBlock: { paddingTop: space(8) },
   chapter: { marginTop: space(10) },
